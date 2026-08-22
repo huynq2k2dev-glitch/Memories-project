@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/002-auth-baseline.sql
+  - include:
+      file: db/changelog/changes/003-auth-audit.sql
+  - include:
+      file: db/changelog/changes/004-refresh-tokens.sql
+  - include:
+      file: db/changelog/changes/005-auth-audit-actors.sql
+  - include:
+      file: db/changelog/changes/006-template-catalog.sql
+  - include:
+      file: db/changelog/changes/007-memory-core.sql
+  - include:
+      file: db/changelog/changes/008-memory-content.sql
+  - include:
+      file: db/changelog/changes/009-memory-schedule.sql
+  - include:
+      file: db/changelog/changes/010-memory-coordinate-pair-constraint.sql
+  - include:
+      file: db/changelog/changes/011-media-assets.sql
+  - include:
+      file: db/changelog/changes/012-memory-publishing.sql

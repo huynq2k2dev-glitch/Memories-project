@@ -1,0 +1,23 @@
+# Java
+backend/target/
+
+# Node.js / Next.js
+frontend/.next/
+frontend/node_modules/
+frontend/playwright-report/
+frontend/test-results/
+frontend/tsconfig.tsbuildinfo
+
+# Local environment and IDE files
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*.iml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+.scratch
+.docx

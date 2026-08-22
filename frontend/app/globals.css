@@ -1,0 +1,1025 @@
+:root {
+  color-scheme: light;
+  --background: #f8f3ea;
+  --foreground: #2f241f;
+  --accent: #9b4d54;
+  --surface: rgba(255, 255, 255, 0.78);
+  --border: rgba(74, 51, 43, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(207, 144, 123, 0.24), transparent 38%),
+    var(--background);
+  color: var(--foreground);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+main {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+}
+
+.hero {
+  width: min(44rem, 100%);
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--accent);
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.summary {
+  max-width: 36rem;
+  margin: 1.5rem 0 2rem;
+  font-family: Arial, sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.65;
+}
+
+.health-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 1.5rem 4rem rgba(65, 42, 34, 0.08);
+  font-family: Arial, sans-serif;
+}
+
+.health-card p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.health-card strong {
+  color: var(--accent);
+}
+
+.verification-card,
+.login-card {
+  width: min(36rem, 100%);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: 0 1.5rem 4rem rgba(65, 42, 34, 0.08);
+}
+
+.verification-card h1,
+.login-card h1 {
+  font-size: clamp(2.25rem, 7vw, 4.25rem);
+}
+
+.primary-link,
+.resend-form button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.95rem Arial, sans-serif;
+  text-decoration: none;
+}
+
+.resend-form {
+  display: grid;
+  gap: 0.75rem;
+  font-family: Arial, sans-serif;
+}
+
+.resend-form label {
+  font-weight: 700;
+}
+
+.resend-form input {
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.resend-form button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.form-note {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.auth-form,
+.auth-result {
+  display: grid;
+  gap: 0.75rem;
+  font-family: Arial, sans-serif;
+}
+
+.auth-form label {
+  font-weight: 700;
+}
+
+.auth-form input {
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.auth-form button {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.95rem Arial, sans-serif;
+}
+
+.auth-form button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.form-error {
+  color: #8a2931;
+}
+
+.auth-result p {
+  margin: 0;
+}
+
+.secondary-button {
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  cursor: pointer;
+  font: 700 0.95rem Arial, sans-serif;
+}
+
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.secondary-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  font: 700 0.95rem Arial, sans-serif;
+  text-decoration: none;
+}
+
+.admin-shell {
+  display: block;
+  width: min(76rem, 100%);
+  margin: 0 auto;
+  padding: 3rem 1.25rem 5rem;
+}
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.admin-header h1 {
+  font-size: clamp(2.75rem, 7vw, 5rem);
+}
+
+.admin-notice {
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(41, 112, 75, 0.25);
+  border-radius: 0.75rem;
+  background: rgba(224, 246, 233, 0.85);
+  color: #225c3e;
+  font: 600 0.95rem Arial, sans-serif;
+}
+
+.admin-form,
+.version-form {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  font-family: Arial, sans-serif;
+}
+
+.admin-form h2,
+.version-section h3 {
+  margin: 0 0 0.5rem;
+}
+
+.admin-form label,
+.version-form label {
+  font-weight: 700;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea,
+.version-form input,
+.version-form textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.admin-form textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.admin-form button,
+.version-form button,
+.publish-button {
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.95rem Arial, sans-serif;
+}
+
+.admin-form button:disabled,
+.version-form button:disabled,
+.publish-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.template-list {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.template-card {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.template-card-header,
+.version-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.template-card-header h2 {
+  margin: 0;
+}
+
+.template-code {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.status-badge {
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(155, 77, 84, 0.12);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.admin-form.compact {
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.version-section {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.version-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: white;
+}
+
+.version-form {
+  padding: 1rem;
+  background: rgba(248, 243, 234, 0.6);
+}
+
+.version-form .json-field {
+  min-height: 10rem;
+  resize: vertical;
+  font: 0.82rem/1.45 Consolas, monospace;
+}
+
+.renderer-contract {
+  margin: 0;
+}
+
+.contract-summary {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.contract-summary div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) 1fr;
+  gap: 1rem;
+}
+
+.contract-summary dt {
+  font-weight: 700;
+}
+
+.contract-summary dd {
+  margin: 0;
+}
+
+.memory-renderer {
+  width: min(44rem, 100%);
+  padding: 2rem;
+  border: 0.35rem solid var(--accent);
+  border-radius: 1.25rem;
+  background: var(--surface);
+}
+
+@media (max-width: 42rem) {
+  .admin-header {
+    display: grid;
+  }
+
+  .contract-summary div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}
+
+.catalog-shell {
+  display: block;
+  width: min(82rem, 100%);
+  margin: 0 auto;
+  padding: 3rem 1.25rem 5rem;
+}
+
+.catalog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.catalog-header h1 {
+  font-size: clamp(2.75rem, 7vw, 5rem);
+}
+
+.catalog-controls {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-family: Arial, sans-serif;
+}
+
+.catalog-controls label {
+  font-weight: 700;
+}
+
+.catalog-controls select,
+.catalog-controls button,
+.catalog-version-actions button,
+.pagination button {
+  min-height: 2.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  cursor: pointer;
+  font: 700 0.9rem Arial, sans-serif;
+}
+
+.catalog-controls button,
+.catalog-version-actions button {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.catalog-controls button:disabled,
+.pagination button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.catalog-layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: 1.5rem;
+}
+
+.catalog-list {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  font-family: Arial, sans-serif;
+}
+
+.catalog-card,
+.catalog-preview {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.catalog-card h2,
+.catalog-preview h2 {
+  margin-top: 0;
+}
+
+.catalog-meta {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.catalog-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.catalog-preview {
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: 1rem;
+  font-family: Arial, sans-serif;
+}
+
+.catalog-preview .memory-renderer h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.create-memory-form {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.memory-draft-workspace {
+  display: grid;
+  gap: 1rem;
+}
+
+.create-memory-form h3 {
+  margin: 0;
+}
+
+.create-memory-form label {
+  font-weight: 700;
+}
+
+.create-memory-form input,
+.memory-editor input,
+.memory-editor select,
+.memory-editor textarea {
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.create-memory-form > button,
+.memory-created button,
+.memory-editor > button,
+.memory-editor .form-error button {
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.9rem Arial, sans-serif;
+}
+
+.create-memory-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.memory-editor {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.memory-editor h3,
+.memory-editor .form-error p {
+  margin: 0;
+}
+
+.memory-editor label {
+  font-weight: 700;
+}
+
+.memory-editor textarea {
+  resize: vertical;
+}
+
+.memory-editor .json-editor {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.memory-editor button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.memory-content-editor {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.memory-media-editor {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.memory-media-editor > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.memory-media-editor h3,
+.memory-media-editor h4 {
+  margin: 0;
+}
+
+.memory-media-editor button,
+.avatar-row button {
+  min-height: 2.5rem;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.85rem Arial, sans-serif;
+}
+
+.memory-media-editor button:disabled,
+.avatar-row button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.media-image-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.media-image-card {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.55fr) minmax(16rem, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.media-image-card > img {
+  width: 100%;
+  height: 100%;
+  min-height: 14rem;
+  border-radius: 0.65rem;
+  object-fit: cover;
+  background: rgba(74, 51, 43, 0.08);
+}
+
+.avatar-assignment,
+.avatar-row {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.avatar-assignment {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.avatar-row {
+  grid-template-columns: minmax(8rem, 0.5fr) minmax(12rem, 1fr) auto;
+  align-items: center;
+}
+
+.avatar-row label {
+  font-weight: 700;
+}
+
+.avatar-row select {
+  min-height: 2.5rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.memory-content-editor > header,
+.content-item-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.memory-content-editor h3,
+.memory-content-editor h4,
+.memory-content-editor .form-error p {
+  margin: 0;
+}
+
+.memory-content-editor > header > button,
+.content-item-form > button,
+.content-item-actions button,
+.memory-content-editor .form-error button {
+  min-height: 2.5rem;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.85rem Arial, sans-serif;
+}
+
+.memory-content-editor button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.content-editor-columns,
+.content-editor-columns > section,
+.content-item-list,
+.content-item-form,
+.content-item-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.content-editor-columns {
+  gap: 1.25rem;
+}
+
+.content-editor-columns > section {
+  align-content: start;
+}
+
+.content-item-form,
+.content-item-card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.content-item-card {
+  background: white;
+}
+
+.content-item-form label,
+.content-item-card label {
+  font-weight: 700;
+}
+
+.content-item-form input,
+.content-item-form select,
+.content-item-form textarea,
+.content-item-card input,
+.content-item-card select,
+.content-item-card textarea {
+  min-height: 2.65rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.content-item-form textarea,
+.content-item-card textarea {
+  resize: vertical;
+}
+
+.content-item-form .json-editor,
+.content-item-card .json-editor {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.content-item-heading span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.content-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.content-item-actions .danger-button {
+  background: #8f2f35;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.checkbox-label input {
+  min-height: auto;
+}
+
+.coordinate-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.coordinate-fields > div {
+  display: grid;
+  gap: 0.4rem;
+}
+
+@media (max-width: 36rem) {
+  .coordinate-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.memory-created {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem;
+  border-radius: 0.75rem;
+  background: rgba(224, 246, 233, 0.85);
+}
+
+.memory-created code {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 48rem) {
+  .catalog-header,
+  .catalog-controls {
+    display: grid;
+  }
+
+  .catalog-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-preview {
+    position: static;
+  }
+
+  .memory-media-editor > header,
+  .media-image-card,
+  .avatar-row {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-media-editor > header {
+    display: grid;
+  }
+}
+
+.publishing-editor {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.publishing-editor h3 {
+  margin: 0;
+}
+
+.publishing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.publishing-actions button,
+.publishing-actions a {
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: 700 0.9rem Arial, sans-serif;
+  text-decoration: none;
+}
+
+.publishing-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.memory-live-preview {
+  padding: 1rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.public-memory-shell {
+  display: block;
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+
+.public-memory-message {
+  min-height: 100vh;
+  align-content: center;
+  text-align: center;
+}
+
+.memory-render-page {
+  display: grid;
+  width: 100%;
+  gap: clamp(2rem, 5vw, 4rem);
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.memory-render-page h1 {
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+}
+
+.memory-render-page h2,
+.memory-render-page h3,
+.memory-render-page p,
+.memory-render-page figure {
+  margin-top: 0;
+}
+
+.render-hero,
+.render-block,
+.render-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.render-cover {
+  width: 100%;
+  max-height: 34rem;
+  border-radius: 0.9rem;
+  object-fit: cover;
+}
+
+.render-member-grid,
+.render-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.render-card {
+  align-content: start;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.render-avatar {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.render-copy {
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.render-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.render-gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.75rem;
+  object-fit: cover;
+}
+
+.render-gallery figcaption {
+  margin-top: 0.45rem;
+  font: 0.9rem/1.5 Arial, sans-serif;
+}
