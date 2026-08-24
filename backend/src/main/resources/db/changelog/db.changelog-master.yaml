@@ -21,3 +21,19 @@ databaseChangeLog:
       file: db/changelog/changes/011-media-assets.sql
   - include:
       file: db/changelog/changes/012-memory-publishing.sql
+  - include:
+      file: db/changelog/changes/013-memory-password-access.sql
+  - include:
+      file: db/changelog/changes/014-memory-collaborators.sql
+  - include:
+      file: db/changelog/changes/015-memory-guests.sql
+  - include:
+      file: db/changelog/changes/016-guest-event-responses.sql
+  - include:
+      file: db/changelog/changes/017-guest-messages.sql
+  - include:
+      file: db/changelog/changes/018-share-links.sql
+  - include:
+      file: db/changelog/changes/019-rate-limit-buckets.sql
+  - include:
+      file: db/changelog/changes/020-foundation-schema-alignment.sql

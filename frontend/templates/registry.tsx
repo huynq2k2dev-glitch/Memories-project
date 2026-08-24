@@ -78,6 +78,12 @@ export type MemoryRenderPayload = {
     coverCandidate: boolean;
     asset: RenderMedia;
   }>;
+  messages: Array<{
+    id: string;
+    guestName: string;
+    content: string;
+    createdAt: string;
+  }>;
 };
 
 type RegisteredRenderer = {

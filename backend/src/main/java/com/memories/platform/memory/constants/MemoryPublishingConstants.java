@@ -12,6 +12,12 @@ public final class MemoryPublishingConstants {
             MemoryVisibility.PUBLIC,
             MemoryVisibility.UNLISTED
     );
+    public static final Set<MemoryVisibility> PUBLISHABLE_VISIBILITIES = Set.of(
+            MemoryVisibility.PUBLIC,
+            MemoryVisibility.UNLISTED,
+            MemoryVisibility.PRIVATE,
+            MemoryVisibility.PASSWORD_PROTECTED
+    );
 
     private MemoryPublishingConstants() {
     }

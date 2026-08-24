@@ -88,6 +88,14 @@ public class AuthConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/public/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/public/memories/*/unlock",
+                                "/api/v1/public/memories/*/messages",
+                                "/api/v1/public/guests/*/responses",
+                                "/api/v1/public/shares/*/redeem",
+                                "/api/v1/public/memories/*/share-rsvp/responses"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/login",

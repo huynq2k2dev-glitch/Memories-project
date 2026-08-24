@@ -31,7 +31,7 @@ import java.util.UUID;
 public class MemoryMemberService {
 
     private final MemoryMemberRepository memberRepository;
-    private final MemoryDraftAccessService accessService;
+    private final MemoryAccessService accessService;
     private final MemoryContentSafetyService contentSafetyService;
     private final ObjectMapper objectMapper;
     private final MediaAssetAccessService assetAccessService;
@@ -39,7 +39,7 @@ public class MemoryMemberService {
 
     public MemoryMemberService(
             MemoryMemberRepository memberRepository,
-            MemoryDraftAccessService accessService,
+            MemoryAccessService accessService,
             MemoryContentSafetyService contentSafetyService,
             ObjectMapper objectMapper,
             MediaAssetAccessService assetAccessService,
@@ -55,7 +55,7 @@ public class MemoryMemberService {
 
     @Transactional(readOnly = true)
     public List<MemoryMemberResponse> list(UUID memoryId) {
-        accessService.requireOwned(memoryId);
+        accessService.requireView(memoryId);
         return memberRepository.findAllByMemoryIdOrderBySortOrderAsc(memoryId).stream()
                 .map(this::toResponse)
                 .toList();

@@ -18,6 +18,7 @@ public final class AuthConstants {
     public static final String REASON_INVALID_CREDENTIALS = "INVALID_CREDENTIALS";
     public static final String REASON_EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
     public static final String REASON_ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
+    public static final String REASON_RATE_LIMITED = "RATE_LIMITED";
     public static final String REASON_PERMISSION_DENIED = "PERMISSION_DENIED";
     public static final String REASON_SESSION_INVALID = "SESSION_INVALID";
     public static final String REASON_REFRESH_TOKEN_REUSE = "REFRESH_TOKEN_REUSE";

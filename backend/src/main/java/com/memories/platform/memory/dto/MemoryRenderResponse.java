@@ -2,6 +2,7 @@ package com.memories.platform.memory.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.memories.platform.common.domain.MemoryType;
+import com.memories.platform.guest.dto.GuestMessagePublicResponse;
 import com.memories.platform.memory.entity.MemoryStatus;
 import com.memories.platform.memory.entity.MemoryVisibility;
 
@@ -29,7 +30,8 @@ public record MemoryRenderResponse(
         List<RenderSection> sections,
         List<RenderLocation> locations,
         List<RenderEvent> events,
-        List<RenderImage> images
+        List<RenderImage> images,
+        List<GuestMessagePublicResponse> messages
 ) {
 
     public record RenderMedia(

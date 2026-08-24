@@ -21,4 +21,16 @@ public class CurrentActorService {
             throw new PermissionDeniedException();
         }
     }
+
+    public UUID userIdOrNull() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(authentication.getName());
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
+    }
 }

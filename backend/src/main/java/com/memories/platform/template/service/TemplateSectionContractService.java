@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class TemplateSectionContractService {
@@ -60,6 +62,15 @@ public class TemplateSectionContractService {
         Set<String> requiredTypes = new HashSet<>();
         version.getRequiredSections().forEach(value -> requiredTypes.add(value.textValue()));
         return Set.copyOf(requiredTypes);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
+    public List<String> allowedSectionTypes(UUID templateVersionId) {
+        TemplateVersion version = versionRepository.findById(templateVersionId)
+                .orElseThrow(TemplateVersionNotFoundException::new);
+        List<String> types = new ArrayList<>();
+        version.getSectionContracts().fieldNames().forEachRemaining(types::add);
+        return List.copyOf(types);
     }
 
     private boolean contains(JsonNode values, String expected) {

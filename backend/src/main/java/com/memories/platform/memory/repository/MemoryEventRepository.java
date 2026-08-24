@@ -11,5 +11,7 @@ public interface MemoryEventRepository extends JpaRepository<MemoryEvent, UUID> 
 
     List<MemoryEvent> findAllByMemoryIdOrderBySortOrderAsc(UUID memoryId);
 
+    List<MemoryEvent> findAllByMemoryIdAndRsvpEnabledTrueOrderBySortOrderAsc(UUID memoryId);
+
     Optional<MemoryEvent> findByIdAndMemoryId(UUID id, UUID memoryId);
 }

@@ -6,6 +6,7 @@ import com.memories.platform.memory.entity.MemoryStatus;
 import com.memories.platform.memory.entity.MemoryVisibility;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record MemoryDetailResponse(
@@ -26,6 +27,8 @@ public record MemoryDetailResponse(
         Instant expiresAt,
         Instant createdAt,
         Instant updatedAt,
-        long version
+        long version,
+        List<String> allowedSectionTypes,
+        MemoryCapabilitiesResponse capabilities
 ) {
 }

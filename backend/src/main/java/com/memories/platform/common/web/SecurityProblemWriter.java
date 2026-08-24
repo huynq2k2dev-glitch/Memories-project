@@ -9,9 +9,12 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URI;
 
 @Component
 public class SecurityProblemWriter {
+
+    private static final URI REDACTED_INSTANCE = URI.create("/api/v1");
 
     private final ObjectMapper objectMapper;
 
@@ -28,6 +31,8 @@ public class SecurityProblemWriter {
     ) throws IOException {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
         problem.setTitle(status.getReasonPhrase());
+        problem.setType(URI.create("about:blank"));
+        problem.setInstance(REDACTED_INSTANCE);
         problem.setProperty("code", code);
         problem.setProperty(
                 "correlationId",

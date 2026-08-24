@@ -7,10 +7,27 @@ import com.memories.platform.auth.exception.ExpiredVerificationTokenException;
 import com.memories.platform.auth.exception.InvalidVerificationTokenException;
 import com.memories.platform.auth.exception.InvalidCredentialsException;
 import com.memories.platform.auth.exception.InvalidRefreshTokenException;
+import com.memories.platform.auth.exception.LoginRateLimitException;
 import com.memories.platform.auth.exception.PermissionDeniedException;
 import com.memories.platform.auth.exception.UserAccountNotFoundException;
 import com.memories.platform.auth.service.RefreshTokenCookieService;
 import com.memories.platform.auth.exception.VerificationEmailDeliveryException;
+import com.memories.platform.guest.exception.GuestInvitationNotFoundException;
+import com.memories.platform.guest.exception.GuestMessageConflictException;
+import com.memories.platform.guest.exception.GuestMessageNotFoundException;
+import com.memories.platform.guest.exception.GuestMessageRateLimitException;
+import com.memories.platform.guest.exception.GuestMessageTransitionException;
+import com.memories.platform.guest.exception.GuestRsvpConflictException;
+import com.memories.platform.guest.exception.GuestRsvpNotFoundException;
+import com.memories.platform.guest.exception.GuestRsvpVersionConflictException;
+import com.memories.platform.guest.exception.InvalidGuestRsvpException;
+import com.memories.platform.guest.exception.InvalidGuestMessageQueryException;
+import com.memories.platform.guest.exception.InvalidMemoryGuestQueryException;
+import com.memories.platform.guest.exception.MemoryGuestConflictException;
+import com.memories.platform.guest.exception.MemoryGuestNotActiveException;
+import com.memories.platform.guest.exception.MemoryGuestNotFoundException;
+import com.memories.platform.guest.exception.MemoryGuestVersionConflictException;
+import com.memories.platform.guest.exception.UnsafeGuestMessageException;
 import com.memories.platform.media.exception.InvalidMediaUploadException;
 import com.memories.platform.media.exception.MediaAssetInUseException;
 import com.memories.platform.media.exception.MediaAssetNotFoundException;
@@ -18,9 +35,14 @@ import com.memories.platform.media.exception.MediaAssetNotReadyException;
 import com.memories.platform.media.exception.MediaQuotaExceededException;
 import com.memories.platform.media.exception.MediaStorageUnavailableException;
 import com.memories.platform.media.exception.MediaUploadVerificationException;
+import com.memories.platform.media.exception.MediaUploadRateLimitException;
 import com.memories.platform.media.exception.MediaVersionConflictException;
 import com.memories.platform.memory.exception.MemoryNotFoundException;
+import com.memories.platform.memory.exception.MemoryLifecycleConflictException;
+import com.memories.platform.memory.exception.InvalidMemoryAccessPolicyException;
 import com.memories.platform.memory.exception.MemoryMediaNotFoundException;
+import com.memories.platform.memory.exception.MemoryMessageSettingsConflictException;
+import com.memories.platform.memory.exception.MemoryPasswordRequiredException;
 import com.memories.platform.memory.exception.MemorySlugConflictException;
 import com.memories.platform.memory.exception.MemoryTemplateTypeMismatchException;
 import com.memories.platform.memory.exception.InvalidMemoryThemeException;
@@ -28,7 +50,6 @@ import com.memories.platform.memory.exception.MemoryNotEditableException;
 import com.memories.platform.memory.exception.MemoryPublishValidationException;
 import com.memories.platform.memory.exception.MemoryVersionConflictException;
 import com.memories.platform.memory.exception.UnsafeMemoryContentException;
-import com.memories.platform.memory.exception.UnsupportedMemoryVisibilityException;
 import com.memories.platform.memory.exception.InvalidMemoryItemOrderException;
 import com.memories.platform.memory.exception.InvalidMemorySectionContractException;
 import com.memories.platform.memory.exception.MemoryMemberConflictException;
@@ -47,7 +68,13 @@ import com.memories.platform.memory.exception.UnsafeMemoryMapUrlException;
 import com.memories.platform.memory.exception.InvalidMemorySectionReferenceException;
 import com.memories.platform.memory.exception.MemoryImageConflictException;
 import com.memories.platform.memory.exception.MemoryImageNotFoundException;
+import com.memories.platform.memory.exception.MemoryCollaboratorConflictException;
+import com.memories.platform.memory.exception.MemoryCollaboratorNotFoundException;
+import com.memories.platform.memory.exception.InvalidShareLinkException;
+import com.memories.platform.memory.exception.ShareLinkConflictException;
+import com.memories.platform.memory.exception.ShareLinkNotFoundException;
 import com.memories.platform.template.exception.InvalidTemplateContractException;
+import com.memories.platform.template.exception.InvalidAdminTemplateQueryException;
 import com.memories.platform.template.exception.InvalidTemplateCatalogQueryException;
 import com.memories.platform.template.exception.TemplateCodeAlreadyExistsException;
 import com.memories.platform.template.exception.TemplateNotFoundException;
@@ -77,6 +104,7 @@ import java.net.URI;
 public class ApiExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final URI REDACTED_INSTANCE = URI.create("/api/v1");
     private final RefreshTokenCookieService refreshTokenCookieService;
 
     public ApiExceptionHandler(RefreshTokenCookieService refreshTokenCookieService) {
@@ -134,6 +162,19 @@ public class ApiExceptionHandler {
                 HttpStatus.LOCKED,
                 "ACCOUNT_LOCKED",
                 "The account is temporarily locked. Please retry later.",
+                request
+        );
+    }
+
+    @ExceptionHandler(LoginRateLimitException.class)
+    public ResponseEntity<ProblemDetail> handleLoginRateLimit(
+            LoginRateLimitException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "LOGIN_RATE_LIMITED",
+                "Too many login requests. Please retry later.",
                 request
         );
     }
@@ -229,6 +270,19 @@ public class ApiExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidAdminTemplateQueryException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidAdminTemplateQuery(
+            InvalidAdminTemplateQueryException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.BAD_REQUEST,
+                "ADMIN_TEMPLATE_QUERY_INVALID",
+                "Page must be non-negative and size must be between 1 and 50.",
+                request
+        );
+    }
+
     @ExceptionHandler(TemplateVersionNotSelectableException.class)
     public ResponseEntity<ProblemDetail> handleTemplateVersionNotSelectable(
             TemplateVersionNotSelectableException exception,
@@ -281,6 +335,274 @@ public class ApiExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ShareLinkNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleShareLinkNotFound(
+            ShareLinkNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "SHARE_LINK_NOT_FOUND",
+                "The share link is not available.",
+                request
+        );
+    }
+
+    @ExceptionHandler(InvalidShareLinkException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidShareLink(
+            InvalidShareLinkException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "SHARE_LINK_INVALID",
+                "The share link settings are invalid.",
+                request
+        );
+    }
+
+    @ExceptionHandler(ShareLinkConflictException.class)
+    public ResponseEntity<ProblemDetail> handleShareLinkConflict(
+            ShareLinkConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "SHARE_LINK_CONFLICT",
+                "The share link could not be saved. Please retry.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryGuestNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryGuestNotFound(
+            MemoryGuestNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "MEMORY_GUEST_NOT_FOUND",
+                "The memory guest was not found.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestInvitationNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleGuestInvitationNotFound(
+            GuestInvitationNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "GUEST_INVITATION_NOT_FOUND",
+                "The guest invitation is not available.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestMessageNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleGuestMessageNotFound(
+            GuestMessageNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "GUEST_MESSAGE_NOT_FOUND",
+                "The guest message was not found.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestMessageRateLimitException.class)
+    public ResponseEntity<ProblemDetail> handleGuestMessageRateLimit(
+            GuestMessageRateLimitException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "GUEST_MESSAGE_RATE_LIMITED",
+                "Too many guest messages were submitted. Please retry later.",
+                request
+        );
+    }
+
+    @ExceptionHandler(UnsafeGuestMessageException.class)
+    public ResponseEntity<ProblemDetail> handleUnsafeGuestMessage(
+            UnsafeGuestMessageException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "GUEST_MESSAGE_UNSAFE",
+                "Guest name and message must contain safe plain text without raw HTML.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestMessageTransitionException.class)
+    public ResponseEntity<ProblemDetail> handleGuestMessageTransition(
+            GuestMessageTransitionException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "GUEST_MESSAGE_TRANSITION_INVALID",
+                "The guest message cannot transition from its current status.",
+                request
+        );
+    }
+
+    @ExceptionHandler(InvalidGuestMessageQueryException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidGuestMessageQuery(
+            InvalidGuestMessageQueryException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.BAD_REQUEST,
+                "GUEST_MESSAGE_QUERY_INVALID",
+                "Page must be non-negative and size must be between 1 and 50.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestMessageConflictException.class)
+    public ResponseEntity<ProblemDetail> handleGuestMessageConflict(
+            GuestMessageConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "GUEST_MESSAGE_CONFLICT",
+                "The guest message could not be saved because its current data conflicts.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryMessageSettingsConflictException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryMessageSettingsConflict(
+            MemoryMessageSettingsConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "MEMORY_MESSAGE_SETTINGS_CONFLICT",
+                "Guest message moderation settings cannot be changed for an archived memory.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestRsvpNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleGuestRsvpNotFound(
+            GuestRsvpNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "GUEST_RSVP_NOT_FOUND",
+                "The RSVP invitation or event is not available.",
+                request
+        );
+    }
+
+    @ExceptionHandler(InvalidGuestRsvpException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidGuestRsvp(
+            InvalidGuestRsvpException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "GUEST_RSVP_INVALID",
+                "Party size must be zero when declined, otherwise between one and the guest limit.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestRsvpConflictException.class)
+    public ResponseEntity<ProblemDetail> handleGuestRsvpConflict(
+            GuestRsvpConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "GUEST_RSVP_CONFLICT",
+                "The RSVP could not be saved because its current data conflicts.",
+                request
+        );
+    }
+
+    @ExceptionHandler(GuestRsvpVersionConflictException.class)
+    public ResponseEntity<ProblemDetail> handleGuestRsvpVersionConflict(
+            GuestRsvpVersionConflictException exception,
+            HttpServletRequest request
+    ) {
+        ResponseEntity<ProblemDetail> response = problem(
+                HttpStatus.CONFLICT,
+                "GUEST_RSVP_VERSION_CONFLICT",
+                "The RSVP changed since it was loaded. Reload before retrying.",
+                request
+        );
+        if (exception.getCurrentVersion() != null && response.getBody() != null) {
+            response.getBody().setProperty("currentVersion", exception.getCurrentVersion());
+        }
+        return response;
+    }
+
+    @ExceptionHandler(InvalidMemoryGuestQueryException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidMemoryGuestQuery(
+            InvalidMemoryGuestQueryException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.BAD_REQUEST,
+                "MEMORY_GUEST_QUERY_INVALID",
+                "Page must be non-negative and size must be between 1 and 50.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryGuestConflictException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryGuestConflict(
+            MemoryGuestConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "MEMORY_GUEST_CONFLICT",
+                "The guest could not be saved because its current data conflicts.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryGuestNotActiveException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryGuestNotActive(
+            MemoryGuestNotActiveException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "MEMORY_GUEST_NOT_ACTIVE",
+                "Only an active guest can perform this operation.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryGuestVersionConflictException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryGuestVersionConflict(
+            MemoryGuestVersionConflictException exception,
+            HttpServletRequest request
+    ) {
+        ResponseEntity<ProblemDetail> response = problem(
+                HttpStatus.CONFLICT,
+                "MEMORY_GUEST_VERSION_CONFLICT",
+                "The guest changed since it was loaded. Reload before retrying.",
+                request
+        );
+        if (exception.getCurrentVersion() != null && response.getBody() != null) {
+            response.getBody().setProperty("currentVersion", exception.getCurrentVersion());
+        }
+        return response;
+    }
+
     @ExceptionHandler(MemoryMediaNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleMemoryMediaNotFound(
             MemoryMediaNotFoundException exception,
@@ -320,15 +642,28 @@ public class ApiExceptionHandler {
         );
     }
 
-    @ExceptionHandler(UnsupportedMemoryVisibilityException.class)
-    public ResponseEntity<ProblemDetail> handleUnsupportedMemoryVisibility(
-            UnsupportedMemoryVisibilityException exception,
+    @ExceptionHandler(InvalidMemoryAccessPolicyException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidMemoryAccessPolicy(
+            InvalidMemoryAccessPolicyException exception,
             HttpServletRequest request
     ) {
         return problem(
                 HttpStatus.UNPROCESSABLE_ENTITY,
-                "MEMORY_VISIBILITY_UNSUPPORTED",
-                "Password-protected visibility is not available until a password is configured.",
+                "MEMORY_ACCESS_POLICY_INVALID",
+                "Password-protected visibility requires a password, and other modes must not include one.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryPasswordRequiredException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryPasswordRequired(
+            MemoryPasswordRequiredException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.UNAUTHORIZED,
+                "MEMORY_ACCESS_REQUIRED",
+                "A valid memory access credential is required.",
                 request
         );
     }
@@ -342,6 +677,19 @@ public class ApiExceptionHandler {
                 HttpStatus.CONFLICT,
                 "MEMORY_NOT_EDITABLE",
                 "Only draft memories can be edited by this operation.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryLifecycleConflictException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryLifecycleConflict(
+            MemoryLifecycleConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "MEMORY_LIFECYCLE_CONFLICT",
+                "The memory cannot transition from its current lifecycle state.",
                 request
         );
     }
@@ -610,6 +958,32 @@ public class ApiExceptionHandler {
         );
     }
 
+    @ExceptionHandler(MemoryCollaboratorNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryCollaboratorNotFound(
+            MemoryCollaboratorNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "MEMORY_COLLABORATOR_NOT_FOUND",
+                "The active memory collaborator was not found.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MemoryCollaboratorConflictException.class)
+    public ResponseEntity<ProblemDetail> handleMemoryCollaboratorConflict(
+            MemoryCollaboratorConflictException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.CONFLICT,
+                "MEMORY_COLLABORATOR_CONFLICT",
+                "The account is already active on this memory or cannot be added as a collaborator.",
+                request
+        );
+    }
+
     @ExceptionHandler(InvalidMediaUploadException.class)
     public ResponseEntity<ProblemDetail> handleInvalidMediaUpload(
             InvalidMediaUploadException exception,
@@ -671,6 +1045,19 @@ public class ApiExceptionHandler {
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 "MEDIA_UPLOAD_VERIFICATION_FAILED",
                 "The uploaded object does not match its approved image metadata.",
+                request
+        );
+    }
+
+    @ExceptionHandler(MediaUploadRateLimitException.class)
+    public ResponseEntity<ProblemDetail> handleMediaUploadRateLimit(
+            MediaUploadRateLimitException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "MEDIA_UPLOAD_RATE_LIMITED",
+                "Too many upload requests. Please retry later.",
                 request
         );
     }
@@ -836,6 +1223,7 @@ public class ApiExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
         problem.setTitle(status.getReasonPhrase());
         problem.setType(URI.create("about:blank"));
+        problem.setInstance(REDACTED_INSTANCE);
         problem.setProperty("code", code);
         problem.setProperty(
                 "correlationId",

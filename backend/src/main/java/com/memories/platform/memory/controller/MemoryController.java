@@ -1,14 +1,17 @@
 package com.memories.platform.memory.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.memory.dto.ArchiveMemoryRequest;
 import com.memories.platform.memory.dto.CreateMemoryRequest;
-import com.memories.platform.memory.dto.MemoryDetailResponse;
 import com.memories.platform.memory.dto.MemoryCoverResponse;
+import com.memories.platform.memory.dto.MemoryDetailResponse;
+import com.memories.platform.memory.dto.MemoryLifecycleResponse;
 import com.memories.platform.memory.dto.MemoryRenderResponse;
 import com.memories.platform.memory.dto.PublishMemoryRequest;
 import com.memories.platform.memory.dto.PublishMemoryResponse;
 import com.memories.platform.memory.dto.UpdateMemoryAssetReferenceRequest;
 import com.memories.platform.memory.dto.UpdateMemoryRequest;
+import com.memories.platform.memory.service.MemoryLifecycleService;
 import com.memories.platform.memory.service.MemoryPublishingService;
 import com.memories.platform.memory.service.MemoryRenderService;
 import com.memories.platform.memory.service.MemoryService;
@@ -16,12 +19,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -32,15 +37,18 @@ public class MemoryController {
 
     private final MemoryService memoryService;
     private final MemoryPublishingService publishingService;
+    private final MemoryLifecycleService lifecycleService;
     private final MemoryRenderService renderService;
 
     public MemoryController(
             MemoryService memoryService,
             MemoryPublishingService publishingService,
+            MemoryLifecycleService lifecycleService,
             MemoryRenderService renderService
     ) {
         this.memoryService = memoryService;
         this.publishingService = publishingService;
+        this.lifecycleService = lifecycleService;
         this.renderService = renderService;
     }
 
@@ -52,8 +60,8 @@ public class MemoryController {
     }
 
     @GetMapping("/{memoryId}")
-    public ResponseEntity<MemoryDetailResponse> getOwned(@PathVariable UUID memoryId) {
-        return ResponseEntity.ok(memoryService.getOwned(memoryId));
+    public ResponseEntity<MemoryDetailResponse> get(@PathVariable UUID memoryId) {
+        return ResponseEntity.ok(memoryService.get(memoryId));
     }
 
     @PutMapping("/{memoryId}")
@@ -87,5 +95,30 @@ public class MemoryController {
                 CorrelationIdFilter.REQUEST_ATTRIBUTE
         );
         return ResponseEntity.ok(publishingService.publish(memoryId, request, correlationId));
+    }
+
+    @PostMapping("/{memoryId}/archive")
+    public ResponseEntity<MemoryLifecycleResponse> archive(
+            @PathVariable UUID memoryId,
+            @Valid @RequestBody ArchiveMemoryRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        String correlationId = (String) httpRequest.getAttribute(
+                CorrelationIdFilter.REQUEST_ATTRIBUTE
+        );
+        return ResponseEntity.ok(lifecycleService.archive(memoryId, request, correlationId));
+    }
+
+    @DeleteMapping("/{memoryId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID memoryId,
+            @RequestParam long version,
+            HttpServletRequest httpRequest
+    ) {
+        String correlationId = (String) httpRequest.getAttribute(
+                CorrelationIdFilter.REQUEST_ATTRIBUTE
+        );
+        lifecycleService.softDelete(memoryId, version, correlationId);
+        return ResponseEntity.noContent().build();
     }
 }

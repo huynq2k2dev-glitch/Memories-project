@@ -66,9 +66,8 @@ public interface MediaAssetRepository extends JpaRepository<MediaAsset, UUID> {
             @Param("statuses") Collection<MediaAssetStatus> statuses
     );
 
-    List<MediaAsset> findAllByIdInAndOwnerIdAndStatusAndDeletedAtIsNull(
+    List<MediaAsset> findAllByIdInAndStatusAndDeletedAtIsNull(
             Collection<UUID> ids,
-            UUID ownerId,
             MediaAssetStatus status
     );
 

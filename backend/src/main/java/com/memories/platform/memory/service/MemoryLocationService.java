@@ -28,14 +28,14 @@ import java.util.UUID;
 public class MemoryLocationService {
 
     private final MemoryLocationRepository locationRepository;
-    private final MemoryDraftAccessService accessService;
+    private final MemoryAccessService accessService;
     private final MemoryContentSafetyService contentSafetyService;
     private final MemoryScheduleValidationService validationService;
     private final Clock clock;
 
     public MemoryLocationService(
             MemoryLocationRepository locationRepository,
-            MemoryDraftAccessService accessService,
+            MemoryAccessService accessService,
             MemoryContentSafetyService contentSafetyService,
             MemoryScheduleValidationService validationService,
             Clock clock
@@ -49,7 +49,7 @@ public class MemoryLocationService {
 
     @Transactional(readOnly = true)
     public List<MemoryLocationResponse> list(UUID memoryId) {
-        accessService.requireOwned(memoryId);
+        accessService.requireView(memoryId);
         return locationRepository.findAllByMemoryIdOrderBySortOrderAsc(memoryId).stream()
                 .map(this::toResponse)
                 .toList();

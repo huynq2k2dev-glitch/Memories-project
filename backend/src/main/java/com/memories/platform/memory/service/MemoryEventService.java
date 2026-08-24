@@ -31,7 +31,7 @@ public class MemoryEventService {
 
     private final MemoryEventRepository eventRepository;
     private final MemoryLocationRepository locationRepository;
-    private final MemoryDraftAccessService accessService;
+    private final MemoryAccessService accessService;
     private final MemoryContentSafetyService contentSafetyService;
     private final MemoryScheduleValidationService validationService;
     private final Clock clock;
@@ -39,7 +39,7 @@ public class MemoryEventService {
     public MemoryEventService(
             MemoryEventRepository eventRepository,
             MemoryLocationRepository locationRepository,
-            MemoryDraftAccessService accessService,
+            MemoryAccessService accessService,
             MemoryContentSafetyService contentSafetyService,
             MemoryScheduleValidationService validationService,
             Clock clock
@@ -54,7 +54,7 @@ public class MemoryEventService {
 
     @Transactional(readOnly = true)
     public List<MemoryEventResponse> list(UUID memoryId) {
-        accessService.requireOwned(memoryId);
+        accessService.requireView(memoryId);
         return eventRepository.findAllByMemoryIdOrderBySortOrderAsc(memoryId).stream()
                 .map(this::toResponse)
                 .toList();

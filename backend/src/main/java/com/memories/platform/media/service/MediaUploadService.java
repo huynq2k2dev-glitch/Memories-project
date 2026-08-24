@@ -3,6 +3,7 @@ package com.memories.platform.media.service;
 import com.memories.platform.auth.service.CurrentActorAccountLockService;
 import com.memories.platform.auth.service.CurrentActorService;
 import com.memories.platform.config.MediaStorageProperties;
+import com.memories.platform.config.RateLimitProperties;
 import com.memories.platform.media.constants.MediaConstants;
 import com.memories.platform.media.dto.InitiateMediaUploadRequest;
 import com.memories.platform.media.dto.InitiateMediaUploadResponse;
@@ -15,7 +16,10 @@ import com.memories.platform.media.exception.MediaAssetNotFoundException;
 import com.memories.platform.media.exception.MediaAssetNotReadyException;
 import com.memories.platform.media.exception.MediaQuotaExceededException;
 import com.memories.platform.media.exception.MediaUploadVerificationException;
+import com.memories.platform.media.exception.MediaUploadRateLimitException;
 import com.memories.platform.media.repository.MediaAssetRepository;
+import com.memories.platform.ratelimit.constants.RateLimitScope;
+import com.memories.platform.ratelimit.service.RateLimitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +43,8 @@ public class MediaUploadService {
     private final CurrentActorService currentActorService;
     private final CurrentActorAccountLockService accountLockService;
     private final MediaStorageProperties properties;
+    private final RateLimitProperties rateLimitProperties;
+    private final RateLimitService rateLimitService;
     private final Clock clock;
 
     public MediaUploadService(
@@ -47,6 +53,8 @@ public class MediaUploadService {
             CurrentActorService currentActorService,
             CurrentActorAccountLockService accountLockService,
             MediaStorageProperties properties,
+            RateLimitProperties rateLimitProperties,
+            RateLimitService rateLimitService,
             Clock clock
     ) {
         this.assetRepository = assetRepository;
@@ -54,12 +62,23 @@ public class MediaUploadService {
         this.currentActorService = currentActorService;
         this.accountLockService = accountLockService;
         this.properties = properties;
+        this.rateLimitProperties = rateLimitProperties;
+        this.rateLimitService = rateLimitService;
         this.clock = clock;
     }
 
     @Transactional
     public InitiateMediaUploadResponse initiate(InitiateMediaUploadRequest request) {
-        UUID ownerId = accountLockService.lockCurrentAccount();
+        UUID ownerId = currentActorService.userId();
+        if (!rateLimitService.tryAcquire(
+                RateLimitScope.MEDIA_UPLOAD,
+                ownerId.toString(),
+                rateLimitProperties.uploadCount(),
+                rateLimitProperties.uploadWindow()
+        )) {
+            throw new MediaUploadRateLimitException();
+        }
+        accountLockService.lockCurrentAccount();
         String mimeType = normalizeMimeType(request.mimeType());
         validate(mimeType, request.fileSize(), request.checksumSha256());
         Instant now = clock.instant();

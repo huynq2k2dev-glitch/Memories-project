@@ -1,5 +1,6 @@
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
 const REFRESH_COOKIE_NAME = "memories_refresh";
+export const MEMORY_ACCESS_COOKIE_PREFIX = "memories_memory_access_";
 
 export async function forwardJsonPost(
   request: Request,
@@ -15,9 +16,7 @@ export async function forwardBackendRequest(
   try {
     const correlationId = request.headers.get("X-Correlation-Id");
     const authorization = request.headers.get("Authorization");
-    const cookie = shouldForwardRefreshCookie(path)
-      ? selectRefreshCookie(request.headers.get("Cookie"))
-      : null;
+    const cookie = forwardedCookie(request.headers.get("Cookie"), path);
     const hasRequestBody = request.method !== "GET" && request.method !== "HEAD";
     const backendResponse = await fetch(`${BACKEND_URL}${path}`, {
       method: request.method,
@@ -55,6 +54,27 @@ export async function forwardBackendRequest(
       { status: 503 },
     );
   }
+}
+
+export function selectMemoryAccessCookies(cookieHeader: string | null) {
+  if (!cookieHeader) {
+    return null;
+  }
+  const cookies = cookieHeader
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter((cookie) => cookie.startsWith(MEMORY_ACCESS_COOKIE_PREFIX));
+  return cookies.length > 0 ? cookies.join("; ") : null;
+}
+
+function forwardedCookie(cookieHeader: string | null, path: string) {
+  if (shouldForwardRefreshCookie(path)) {
+    return selectRefreshCookie(cookieHeader);
+  }
+  if (path.startsWith("/api/v1/public/")) {
+    return selectMemoryAccessCookies(cookieHeader);
+  }
+  return null;
 }
 
 function shouldForwardRefreshCookie(path: string) {

@@ -39,17 +39,22 @@ public class MediaAssetAccessService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
-    public Map<UUID, ReadyMediaAsset> readyOwned(
-            UUID ownerId,
-            Collection<UUID> assetIds
-    ) {
+    public ReadyMediaAsset requireReady(UUID assetId) {
+        MediaAsset asset = assetRepository.findByIdAndStatusAndDeletedAtIsNull(
+                assetId,
+                MediaAssetStatus.READY
+        ).orElseThrow(MediaAssetNotReadyException::new);
+        return toReadyAsset(asset);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
+    public Map<UUID, ReadyMediaAsset> ready(Collection<UUID> assetIds) {
         if (assetIds.isEmpty()) {
             return Map.of();
         }
         List<MediaAsset> assets = assetRepository
-                .findAllByIdInAndOwnerIdAndStatusAndDeletedAtIsNull(
+                .findAllByIdInAndStatusAndDeletedAtIsNull(
                         assetIds,
-                        ownerId,
                         MediaAssetStatus.READY
                 );
         if (assets.size() != assetIds.stream().distinct().count()) {
@@ -61,17 +66,13 @@ public class MediaAssetAccessService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
-    public Map<UUID, ReadyMediaAssetMetadata> readyOwnedMetadata(
-            UUID ownerId,
-            Collection<UUID> assetIds
-    ) {
+    public Map<UUID, ReadyMediaAssetMetadata> readyMetadata(Collection<UUID> assetIds) {
         if (assetIds.isEmpty()) {
             return Map.of();
         }
         List<MediaAsset> assets = assetRepository
-                .findAllByIdInAndOwnerIdAndStatusAndDeletedAtIsNull(
+                .findAllByIdInAndStatusAndDeletedAtIsNull(
                         assetIds,
-                        ownerId,
                         MediaAssetStatus.READY
                 );
         if (assets.size() != assetIds.stream().distinct().count()) {
