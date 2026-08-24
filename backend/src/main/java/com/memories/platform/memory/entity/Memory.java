@@ -125,6 +125,7 @@ public class Memory {
             String title,
             String summary,
             MemoryVisibility visibility,
+            String accessPasswordHash,
             JsonNode themeConfig,
             Instant eventStartAt,
             Instant expiresAt,
@@ -134,6 +135,7 @@ public class Memory {
         this.title = title;
         this.summary = summary;
         this.visibility = visibility;
+        this.accessPasswordHash = accessPasswordHash;
         this.themeConfig = themeConfig;
         this.eventStartAt = eventStartAt;
         this.expiresAt = expiresAt;
@@ -147,9 +149,27 @@ public class Memory {
         this.updatedAt = now;
     }
 
+    public void updateSettings(JsonNode settings, UUID actorId, Instant now) {
+        this.settings = settings;
+        this.updatedBy = actorId;
+        this.updatedAt = now;
+    }
+
     public void publish(UUID actorId, Instant now) {
         this.status = MemoryStatus.PUBLISHED;
         this.publishedAt = now;
+        this.updatedBy = actorId;
+        this.updatedAt = now;
+    }
+
+    public void archive(UUID actorId, Instant now) {
+        this.status = MemoryStatus.ARCHIVED;
+        this.updatedBy = actorId;
+        this.updatedAt = now;
+    }
+
+    public void softDelete(UUID actorId, Instant now) {
+        this.deletedAt = now;
         this.updatedBy = actorId;
         this.updatedAt = now;
     }
@@ -188,6 +208,10 @@ public class Memory {
 
     public MemoryVisibility getVisibility() {
         return visibility;
+    }
+
+    public String getAccessPasswordHash() {
+        return accessPasswordHash;
     }
 
     public String getSummary() {

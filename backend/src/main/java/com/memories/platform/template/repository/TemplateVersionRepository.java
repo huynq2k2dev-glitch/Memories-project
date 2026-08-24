@@ -34,6 +34,17 @@ public interface TemplateVersionRepository extends JpaRepository<TemplateVersion
             @Param("status") TemplateVersionStatus status
     );
 
+    @Query("""
+            select templateVersion
+            from TemplateVersion templateVersion
+            join fetch templateVersion.template
+            where templateVersion.template.id in :templateIds
+            order by templateVersion.template.id, templateVersion.versionNo desc
+            """)
+    List<TemplateVersion> findForAdministration(
+            @Param("templateIds") List<UUID> templateIds
+    );
+
     @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("""
             select templateVersion

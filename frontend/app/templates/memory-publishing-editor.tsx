@@ -13,7 +13,7 @@ type PublishingMemory = {
   id: string;
   slug: string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-  visibility: "PRIVATE" | "UNLISTED" | "PUBLIC";
+  visibility: "PRIVATE" | "UNLISTED" | "PUBLIC" | "PASSWORD_PROTECTED";
   version: number;
 };
 
@@ -21,7 +21,7 @@ type PublishResult = {
   id: string;
   slug: string;
   status: "PUBLISHED";
-  visibility: "UNLISTED" | "PUBLIC";
+  visibility: "PRIVATE" | "UNLISTED" | "PUBLIC" | "PASSWORD_PROTECTED";
   publishedAt: string;
   version: number;
 };
@@ -32,9 +32,11 @@ type Problem = {
 
 export default function MemoryPublishingEditor({
   memory,
+  canPublish,
   onPublished,
 }: {
   memory: PublishingMemory;
+  canPublish: boolean;
   onPublished: (result: PublishResult) => void;
 }) {
   const [preview, setPreview] = useState<MemoryRenderPayload | null>(null);
@@ -94,9 +96,6 @@ export default function MemoryPublishingEditor({
   const rendererSupported = preview
     ? supportsTemplateRenderer(preview.componentKey, preview.rendererVersion)
     : false;
-  const publishableVisibility =
-    memory.visibility === "PUBLIC" || memory.visibility === "UNLISTED";
-
   return (
     <section className="publishing-editor">
       <h3>Preview và publish</h3>
@@ -108,29 +107,33 @@ export default function MemoryPublishingEditor({
           {busy ? "Đang xử lý…" : "Tải preview"}
         </button>
         {memory.status === "DRAFT" ? (
-          <button
-            type="button"
-            disabled={busy || !publishableVisibility}
-            onClick={() => void publish()}
-          >
-            Publish {memory.visibility}
-          </button>
-        ) : (
+          canPublish ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void publish()}
+            >
+              Publish {memory.visibility}
+            </button>
+          ) : null
+        ) : memory.status === "PUBLISHED" && memory.visibility !== "PRIVATE" ? (
           <a
             href={`/memories/${encodeURIComponent(memory.slug)}`}
             target="_blank"
             rel="noreferrer"
           >
-            Mở trang public
+            Mở trang chia sẻ
           </a>
+        ) : memory.status === "PUBLISHED" ? (
+          <span className="form-note">
+            PRIVATE chỉ xem được qua preview của người có quyền.
+          </span>
+        ) : (
+          <span className="form-note">
+            Memory đã archive và không còn được chia sẻ public.
+          </span>
         )}
       </div>
-      {!publishableVisibility && memory.status === "DRAFT" ? (
-        <p className="form-note">
-          Lưu visibility thành PUBLIC hoặc UNLISTED trước khi publish. PRIVATE và
-          PASSWORD_PROTECTED thuộc Ticket 15.
-        </p>
-      ) : null}
       {error ? (
         <p className="form-note form-error" role="alert">
           {error}

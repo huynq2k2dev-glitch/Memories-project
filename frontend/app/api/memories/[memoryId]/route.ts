@@ -19,3 +19,12 @@ export async function PUT(request: Request, context: MemoryRouteContext) {
     `/api/v1/memories/${encodeURIComponent(memoryId)}`,
   );
 }
+
+export async function DELETE(request: Request, context: MemoryRouteContext) {
+  const { memoryId } = await context.params;
+  const query = new URL(request.url).search;
+  return forwardBackendRequest(
+    request,
+    `/api/v1/memories/${encodeURIComponent(memoryId)}${query}`,
+  );
+}

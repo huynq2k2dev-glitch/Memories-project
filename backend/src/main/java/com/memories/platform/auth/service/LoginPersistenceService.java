@@ -104,6 +104,17 @@ public class LoginPersistenceService {
         return new LoginAttempt(LoginOutcome.SUCCESS, user.getId());
     }
 
+    @Transactional
+    public void recordRateLimited(String correlationId) {
+        recordAudit(
+                null,
+                AuthConstants.AUDIT_FAILURE,
+                AuthConstants.REASON_RATE_LIMITED,
+                correlationId,
+                clock.instant()
+        );
+    }
+
     private void recordAudit(
             UUID subjectUserId,
             String outcome,

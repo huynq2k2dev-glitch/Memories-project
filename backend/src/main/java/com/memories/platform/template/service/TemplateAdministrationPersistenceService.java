@@ -2,6 +2,7 @@ package com.memories.platform.template.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.memories.platform.template.dto.AdminTemplateResponse;
+import com.memories.platform.template.dto.AdminTemplatePageResponse;
 import com.memories.platform.template.dto.AdminTemplateVersionResponse;
 import com.memories.platform.template.dto.CreateTemplateRequest;
 import com.memories.platform.template.dto.UpdateTemplateRequest;
@@ -10,12 +11,16 @@ import com.memories.platform.template.entity.Template;
 import com.memories.platform.template.entity.TemplateVersion;
 import com.memories.platform.template.entity.TemplateVersionStatus;
 import com.memories.platform.template.exception.TemplateCodeAlreadyExistsException;
+import com.memories.platform.template.exception.InvalidAdminTemplateQueryException;
 import com.memories.platform.template.exception.TemplateNotFoundException;
 import com.memories.platform.template.exception.TemplateVersionImmutableException;
 import com.memories.platform.template.exception.TemplateVersionNotFoundException;
 import com.memories.platform.template.repository.TemplateRepository;
 import com.memories.platform.template.repository.TemplateVersionRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +28,11 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.memories.platform.template.constants.TemplateConstants.MAXIMUM_PAGE_SIZE;
 
 @Service
 public class TemplateAdministrationPersistenceService {
@@ -49,10 +58,35 @@ public class TemplateAdministrationPersistenceService {
     }
 
     @Transactional(readOnly = true)
-    public List<AdminTemplateResponse> list() {
-        return templateRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(this::toResponse)
+    public AdminTemplatePageResponse list(int pageNumber, int pageSize) {
+        if (pageNumber < 0 || pageSize < 1 || pageSize > MAXIMUM_PAGE_SIZE) {
+            throw new InvalidAdminTemplateQueryException();
+        }
+        Page<Template> templatePage = templateRepository.findAll(PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        ));
+        List<UUID> templateIds = templatePage.getContent().stream()
+                .map(Template::getId)
                 .toList();
+        Map<UUID, List<TemplateVersion>> versionsByTemplate = templateIds.isEmpty()
+                ? Map.of()
+                : versionRepository.findForAdministration(templateIds).stream()
+                        .collect(Collectors.groupingBy(version -> version.getTemplate().getId()));
+        List<AdminTemplateResponse> items = templatePage.getContent().stream()
+                .map(template -> toResponse(
+                        template,
+                        versionsByTemplate.getOrDefault(template.getId(), List.of())
+                ))
+                .toList();
+        return new AdminTemplatePageResponse(
+                items,
+                templatePage.getNumber(),
+                templatePage.getSize(),
+                templatePage.getTotalElements(),
+                templatePage.getTotalPages()
+        );
     }
 
     @Transactional
@@ -199,6 +233,13 @@ public class TemplateAdministrationPersistenceService {
     }
 
     private AdminTemplateResponse toResponse(Template template) {
+        return toResponse(template, template.getVersions());
+    }
+
+    private AdminTemplateResponse toResponse(
+            Template template,
+            List<TemplateVersion> versions
+    ) {
         return new AdminTemplateResponse(
                 template.getId(),
                 template.getCode(),
@@ -209,7 +250,7 @@ public class TemplateAdministrationPersistenceService {
                 template.getVersion(),
                 template.getCreatedAt(),
                 template.getUpdatedAt(),
-                template.getVersions().stream().map(this::toResponse).toList()
+                versions.stream().map(this::toResponse).toList()
         );
     }
 

@@ -32,14 +32,14 @@ import java.util.UUID;
 public class MemorySectionService {
 
     private final MemorySectionRepository sectionRepository;
-    private final MemoryDraftAccessService accessService;
+    private final MemoryAccessService accessService;
     private final MemoryContentSafetyService contentSafetyService;
     private final TemplateSectionContractService contractService;
     private final Clock clock;
 
     public MemorySectionService(
             MemorySectionRepository sectionRepository,
-            MemoryDraftAccessService accessService,
+            MemoryAccessService accessService,
             MemoryContentSafetyService contentSafetyService,
             TemplateSectionContractService contractService,
             Clock clock
@@ -53,7 +53,7 @@ public class MemorySectionService {
 
     @Transactional(readOnly = true)
     public List<MemorySectionResponse> list(UUID memoryId) {
-        Memory memory = accessService.requireOwned(memoryId);
+        Memory memory = accessService.requireView(memoryId);
         Set<String> requiredTypes = contractService.requiredSectionTypes(
                 memory.getTemplateVersionId()
         );

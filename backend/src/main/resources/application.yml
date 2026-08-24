@@ -56,6 +56,23 @@ platform:
     max-file-size: 10485760
     max-assets-per-owner: 200
     max-bytes-per-owner: 1073741824
+  memory:
+    password-access-ttl: PT30M
+    password-cookie-secure: ${MEMORY_ACCESS_COOKIE_SECURE:false}
+  rate-limit:
+    login-count: ${LOGIN_RATE_LIMIT_COUNT:20}
+    login-window: ${LOGIN_RATE_LIMIT_WINDOW:PT10M}
+    upload-count: ${UPLOAD_RATE_LIMIT_COUNT:30}
+    upload-window: ${UPLOAD_RATE_LIMIT_WINDOW:PT10M}
+    ip-hash-secret: ${IP_HASH_SECRET}
+    trust-forwarded-for: ${RATE_LIMIT_TRUST_FORWARDED_FOR:false}
+    bucket-retention: ${RATE_LIMIT_BUCKET_RETENTION:PT24H}
+    bucket-purge-cron: ${RATE_LIMIT_BUCKET_PURGE_CRON:0 11 3 * * *}
+  guest-message:
+    rate-limit-count: ${GUEST_MESSAGE_RATE_LIMIT_COUNT:5}
+    rate-limit-window: ${GUEST_MESSAGE_RATE_LIMIT_WINDOW:PT10M}
+    ip-hash-retention: ${GUEST_MESSAGE_IP_HASH_RETENTION:P30D}
+    ip-hash-purge-cron: ${GUEST_MESSAGE_IP_HASH_PURGE_CRON:0 17 3 * * *}
 
 logging:
   pattern:

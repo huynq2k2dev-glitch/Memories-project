@@ -16,6 +16,7 @@ import com.memories.platform.auth.service.RegistrationService.RegistrationResult
 import com.memories.platform.auth.service.SessionService;
 import com.memories.platform.auth.service.SessionService.AuthenticatedSession;
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.ratelimit.service.ClientIpHashService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.CacheControl;
@@ -37,19 +38,22 @@ public class AuthController {
     private final LoginService loginService;
     private final SessionService sessionService;
     private final RefreshTokenCookieService refreshTokenCookieService;
+    private final ClientIpHashService clientIpHashService;
 
     public AuthController(
             RegistrationService registrationService,
             EmailVerificationService emailVerificationService,
             LoginService loginService,
             SessionService sessionService,
-            RefreshTokenCookieService refreshTokenCookieService
+            RefreshTokenCookieService refreshTokenCookieService,
+            ClientIpHashService clientIpHashService
     ) {
         this.registrationService = registrationService;
         this.emailVerificationService = emailVerificationService;
         this.loginService = loginService;
         this.sessionService = sessionService;
         this.refreshTokenCookieService = refreshTokenCookieService;
+        this.clientIpHashService = clientIpHashService;
     }
 
     @PostMapping("/register")
@@ -90,7 +94,12 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         String correlationId = (String) httpRequest.getAttribute(CorrelationIdFilter.REQUEST_ATTRIBUTE);
-        AuthenticatedSession session = loginService.login(request.email(), request.password(), correlationId);
+        AuthenticatedSession session = loginService.login(
+                request.email(),
+                request.password(),
+                correlationId,
+                clientIpHashService.hash(httpRequest)
+        );
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
                 .header(

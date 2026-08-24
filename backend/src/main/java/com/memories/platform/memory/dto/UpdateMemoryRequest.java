@@ -1,6 +1,7 @@
 package com.memories.platform.memory.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.memories.platform.memory.constants.MemoryAccessConstants;
 import com.memories.platform.memory.entity.MemoryVisibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ public record UpdateMemoryRequest(
         @NotBlank @Size(max = 255) String title,
         @Size(max = 1000) String summary,
         @NotNull MemoryVisibility visibility,
+        @Size(max = MemoryAccessConstants.MAX_PASSWORD_LENGTH) String accessPassword,
         @NotNull JsonNode themeConfig,
         Instant eventStartAt,
         Instant expiresAt,
@@ -28,5 +30,10 @@ public record UpdateMemoryRequest(
             return null;
         }
         return value.trim();
+    }
+
+    @Override
+    public String toString() {
+        return "UpdateMemoryRequest[accessPassword=[REDACTED]]";
     }
 }

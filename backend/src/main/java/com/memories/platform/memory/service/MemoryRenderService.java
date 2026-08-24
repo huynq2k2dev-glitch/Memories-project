@@ -1,5 +1,7 @@
 package com.memories.platform.memory.service;
 
+import com.memories.platform.auth.service.CurrentActorService;
+import com.memories.platform.guest.service.GuestMessageQueryService;
 import com.memories.platform.media.dto.MediaDeliveryResponse;
 import com.memories.platform.media.dto.ReadyMediaAsset;
 import com.memories.platform.media.dto.ReadyMediaAssetMetadata;
@@ -12,6 +14,8 @@ import com.memories.platform.memory.entity.MemoryImage;
 import com.memories.platform.memory.entity.MemoryMember;
 import com.memories.platform.memory.entity.MemorySection;
 import com.memories.platform.memory.entity.MemoryStatus;
+import com.memories.platform.memory.entity.MemoryVisibility;
+import com.memories.platform.memory.exception.MemoryPasswordRequiredException;
 import com.memories.platform.memory.exception.MemoryMediaNotFoundException;
 import com.memories.platform.memory.exception.MemoryNotFoundException;
 import com.memories.platform.memory.repository.MemoryEventRepository;
@@ -46,7 +50,11 @@ public class MemoryRenderService {
     private final MemoryLocationRepository locationRepository;
     private final MemoryEventRepository eventRepository;
     private final MemoryImageRepository imageRepository;
-    private final MemoryDraftAccessService accessService;
+    private final GuestMessageQueryService guestMessageQueryService;
+    private final MemoryAccessService accessService;
+    private final MemoryPasswordAccessService passwordAccessService;
+    private final MemoryShareLinkService shareLinkService;
+    private final CurrentActorService currentActorService;
     private final TemplateRenderContractService renderContractService;
     private final MediaAssetAccessService assetAccessService;
     private final MediaDeliveryService mediaDeliveryService;
@@ -59,7 +67,11 @@ public class MemoryRenderService {
             MemoryLocationRepository locationRepository,
             MemoryEventRepository eventRepository,
             MemoryImageRepository imageRepository,
-            MemoryDraftAccessService accessService,
+            GuestMessageQueryService guestMessageQueryService,
+            MemoryAccessService accessService,
+            MemoryPasswordAccessService passwordAccessService,
+            MemoryShareLinkService shareLinkService,
+            CurrentActorService currentActorService,
             TemplateRenderContractService renderContractService,
             MediaAssetAccessService assetAccessService,
             MediaDeliveryService mediaDeliveryService,
@@ -71,7 +83,11 @@ public class MemoryRenderService {
         this.locationRepository = locationRepository;
         this.eventRepository = eventRepository;
         this.imageRepository = imageRepository;
+        this.guestMessageQueryService = guestMessageQueryService;
         this.accessService = accessService;
+        this.passwordAccessService = passwordAccessService;
+        this.shareLinkService = shareLinkService;
+        this.currentActorService = currentActorService;
         this.renderContractService = renderContractService;
         this.assetAccessService = assetAccessService;
         this.mediaDeliveryService = mediaDeliveryService;
@@ -80,30 +96,74 @@ public class MemoryRenderService {
 
     @Transactional(readOnly = true)
     public MemoryRenderResponse preview(UUID memoryId) {
-        Memory memory = accessService.requireOwned(memoryId);
+        Memory memory = accessService.requireView(memoryId);
         return render(memory, false);
     }
 
     @Transactional(readOnly = true)
-    public MemoryRenderResponse publicMemory(String slug) {
+    public MemoryRenderResponse publicMemory(String slug, Map<String, String> cookies) {
         Memory memory = memoryRepository.findPublicBySlug(
                 slug,
                 MemoryStatus.PUBLISHED,
-                MemoryPublishingConstants.PUBLIC_VISIBILITIES,
+                MemoryPublishingConstants.PUBLISHABLE_VISIBILITIES,
                 clock.instant()
         ).orElseThrow(MemoryNotFoundException::new);
-        return render(memory, true);
+        return switch (memory.getVisibility()) {
+            case PUBLIC, UNLISTED -> render(memory, true);
+            case PRIVATE -> {
+                if (accessService.canView(memory, currentActorService.userIdOrNull())) {
+                    yield render(memory, false);
+                }
+                if (!shareLinkService.hasValidViewGrant(memory.getId(), cookies)) {
+                    throw new MemoryNotFoundException();
+                }
+                yield render(memory, true);
+            }
+            case PASSWORD_PROTECTED -> {
+                if (accessService.canView(memory, currentActorService.userIdOrNull())) {
+                    yield render(memory, false);
+                }
+                if (!passwordAccessService.hasValidGrant(memory.getId(), cookies)) {
+                    throw new MemoryPasswordRequiredException();
+                }
+                yield render(memory, true);
+            }
+        };
     }
 
     @Transactional(readOnly = true)
-    public MediaDeliveryResponse publicDelivery(UUID assetId) {
+    public MediaDeliveryResponse publicDelivery(
+            UUID assetId,
+            Map<String, String> cookies
+    ) {
         boolean publiclyReferenced = memoryRepository.isAssetPubliclyReferenced(
                 assetId,
                 MemoryStatus.PUBLISHED,
                 MemoryPublishingConstants.PUBLIC_VISIBILITIES,
                 clock.instant()
         );
-        if (!publiclyReferenced) {
+        boolean passwordAccess = !publiclyReferenced
+                && memoryRepository.findMemoryIdsReferencingAsset(
+                        assetId,
+                        MemoryStatus.PUBLISHED,
+                        MemoryVisibility.PASSWORD_PROTECTED,
+                        clock.instant()
+                ).stream().anyMatch(memoryId -> passwordAccessService.hasValidGrant(
+                        memoryId,
+                        cookies
+                ));
+        boolean shareAccess = !publiclyReferenced
+                && !passwordAccess
+                && memoryRepository.findMemoryIdsReferencingAsset(
+                        assetId,
+                        MemoryStatus.PUBLISHED,
+                        MemoryVisibility.PRIVATE,
+                        clock.instant()
+                ).stream().anyMatch(memoryId -> shareLinkService.hasValidViewGrant(
+                        memoryId,
+                        cookies
+                ));
+        if (!publiclyReferenced && !passwordAccess && !shareAccess) {
             throw new MemoryMediaNotFoundException();
         }
         return mediaDeliveryService.delivery(assetId);
@@ -129,8 +189,8 @@ public class MemoryRenderService {
 
         Set<UUID> assetIds = assetIds(memory, members, images);
         Map<UUID, RenderAsset> assets = publicView
-                ? publicAssets(memory, assetIds)
-                : previewAssets(memory, assetIds);
+                ? publicAssets(assetIds)
+                : previewAssets(assetIds);
 
         return new MemoryRenderResponse(
                 memory.getSlug(),
@@ -177,7 +237,8 @@ public class MemoryRenderService {
                         image.getSortOrder(),
                         image.isCoverCandidate(),
                         media(image.getMediaAssetId(), assets)
-                )).toList()
+                )).toList(),
+                guestMessageQueryService.approved(memory.getId())
         );
     }
 
@@ -227,14 +288,14 @@ public class MemoryRenderService {
         return Set.copyOf(assetIds);
     }
 
-    private Map<UUID, RenderAsset> previewAssets(Memory memory, Set<UUID> assetIds) {
-        return assetAccessService.readyOwned(memory.getOwnerId(), assetIds).values().stream()
+    private Map<UUID, RenderAsset> previewAssets(Set<UUID> assetIds) {
+        return assetAccessService.ready(assetIds).values().stream()
                 .map(this::toRenderAsset)
                 .collect(Collectors.toUnmodifiableMap(RenderAsset::id, Function.identity()));
     }
 
-    private Map<UUID, RenderAsset> publicAssets(Memory memory, Set<UUID> assetIds) {
-        return assetAccessService.readyOwnedMetadata(memory.getOwnerId(), assetIds).values().stream()
+    private Map<UUID, RenderAsset> publicAssets(Set<UUID> assetIds) {
+        return assetAccessService.readyMetadata(assetIds).values().stream()
                 .map(this::toRenderAsset)
                 .collect(Collectors.toUnmodifiableMap(RenderAsset::id, Function.identity()));
     }

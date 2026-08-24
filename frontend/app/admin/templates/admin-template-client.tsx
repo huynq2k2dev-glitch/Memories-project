@@ -70,6 +70,14 @@ type AdminTemplate = {
   versions: AdminTemplateVersion[];
 };
 
+type AdminTemplatePage = {
+  items: AdminTemplate[];
+  page: number;
+  size: number;
+  totalItems: number;
+  totalPages: number;
+};
+
 type Mutation = (
   path: string,
   method: "POST" | "PUT",
@@ -78,21 +86,21 @@ type Mutation = (
 ) => Promise<boolean>;
 
 export default function AdminTemplateClient() {
-  const [templates, setTemplates] = useState<AdminTemplate[]>([]);
+  const [templatePage, setTemplatePage] = useState<AdminTemplatePage | null>(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
-  const loadTemplates = useCallback(async () => {
-    setTemplates(await fetchTemplates());
+  const loadTemplates = useCallback(async (page = 0) => {
+    setTemplatePage(await fetchTemplates(page));
   }, []);
 
   useEffect(() => {
     let active = true;
-    void fetchTemplates()
+    void fetchTemplates(0)
       .then((loadedTemplates) => {
         if (active) {
-          setTemplates(loadedTemplates);
+          setTemplatePage(loadedTemplates);
         }
       })
       .catch((reason: unknown) => {
@@ -110,6 +118,21 @@ export default function AdminTemplateClient() {
     };
   }, []);
 
+  const templates = templatePage?.items ?? [];
+  const currentPage = templatePage?.page ?? 0;
+
+  async function changePage(page: number) {
+    setLoading(true);
+    setError("");
+    try {
+      await loadTemplates(page);
+    } catch (reason) {
+      setError(errorMessage(reason));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const mutate = useCallback<Mutation>(
     async (path, method, body, successMessage) => {
       setError("");
@@ -123,7 +146,7 @@ export default function AdminTemplateClient() {
         if (!response.ok) {
           throw new Error(await problemDetail(response));
         }
-        await loadTemplates();
+        await loadTemplates(currentPage);
         setNotice(successMessage);
         return true;
       } catch (reason) {
@@ -131,7 +154,7 @@ export default function AdminTemplateClient() {
         return false;
       }
     },
-    [loadTemplates],
+    [currentPage, loadTemplates],
   );
 
   return (
@@ -167,6 +190,27 @@ export default function AdminTemplateClient() {
         {templates.map((template) => (
           <TemplateCard key={template.id} template={template} mutate={mutate} />
         ))}
+        {templatePage && templatePage.totalPages > 1 ? (
+          <nav className="pagination" aria-label="Phân trang template quản trị">
+            <button
+              type="button"
+              disabled={loading || templatePage.page === 0}
+              onClick={() => void changePage(templatePage.page - 1)}
+            >
+              Trang trước
+            </button>
+            <span>
+              Trang {templatePage.page + 1}/{templatePage.totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={loading || templatePage.page + 1 >= templatePage.totalPages}
+              onClick={() => void changePage(templatePage.page + 1)}
+            >
+              Trang sau
+            </button>
+          </nav>
+        ) : null}
       </section>
     </main>
   );
@@ -552,14 +596,15 @@ async function problemDetail(response: Response) {
   }
 }
 
-async function fetchTemplates() {
-  const response = await authenticatedFetch("/api/admin/templates", {
+async function fetchTemplates(page: number) {
+  const query = new URLSearchParams({ page: String(page), size: "20" });
+  const response = await authenticatedFetch(`/api/admin/templates?${query}`, {
     cache: "no-store",
   });
   if (!response.ok) {
     throw new Error(await problemDetail(response));
   }
-  return (await response.json()) as AdminTemplate[];
+  return (await response.json()) as AdminTemplatePage;
 }
 
 function errorMessage(reason: unknown) {

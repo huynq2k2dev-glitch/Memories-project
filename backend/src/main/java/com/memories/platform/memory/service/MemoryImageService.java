@@ -6,7 +6,6 @@ import com.memories.platform.memory.dto.CreateMemoryImageRequest;
 import com.memories.platform.memory.dto.MemoryImageResponse;
 import com.memories.platform.memory.dto.ReorderMemoryItemsRequest;
 import com.memories.platform.memory.dto.UpdateMemoryImageRequest;
-import com.memories.platform.memory.entity.Memory;
 import com.memories.platform.memory.entity.MemoryImage;
 import com.memories.platform.memory.exception.InvalidMemoryItemOrderException;
 import com.memories.platform.memory.exception.InvalidMemorySectionReferenceException;
@@ -34,7 +33,7 @@ public class MemoryImageService {
 
     private final MemoryImageRepository imageRepository;
     private final MemorySectionRepository sectionRepository;
-    private final MemoryDraftAccessService accessService;
+    private final MemoryAccessService accessService;
     private final MemoryContentSafetyService contentSafetyService;
     private final MediaAssetAccessService assetAccessService;
     private final Clock clock;
@@ -42,7 +41,7 @@ public class MemoryImageService {
     public MemoryImageService(
             MemoryImageRepository imageRepository,
             MemorySectionRepository sectionRepository,
-            MemoryDraftAccessService accessService,
+            MemoryAccessService accessService,
             MemoryContentSafetyService contentSafetyService,
             MediaAssetAccessService assetAccessService,
             Clock clock
@@ -57,10 +56,9 @@ public class MemoryImageService {
 
     @Transactional(readOnly = true)
     public List<MemoryImageResponse> list(UUID memoryId) {
-        Memory memory = accessService.requireOwned(memoryId);
+        accessService.requireView(memoryId);
         List<MemoryImage> images = imageRepository.findAllByMemoryIdOrderBySortOrderAsc(memoryId);
-        Map<UUID, ReadyMediaAsset> assets = assetAccessService.readyOwned(
-                memory.getOwnerId(),
+        Map<UUID, ReadyMediaAsset> assets = assetAccessService.ready(
                 images.stream().map(MemoryImage::getMediaAssetId).toList()
         );
         return images.stream().map(image -> toResponse(
@@ -71,12 +69,12 @@ public class MemoryImageService {
 
     @Transactional
     public MemoryImageResponse create(UUID memoryId, CreateMemoryImageRequest request) {
-        Memory memory = accessService.requireEditable(memoryId);
+        accessService.requireEditable(memoryId);
         validateSection(memoryId, request.sectionId());
         requireSafe(request.caption(), request.altText());
         ReadyMediaAsset asset = assetAccessService.requireReadyOwned(
                 request.assetId(),
-                memory.getOwnerId()
+                accessService.actorId()
         );
         UUID actorId = accessService.actorId();
         Instant now = clock.instant();
@@ -106,7 +104,7 @@ public class MemoryImageService {
             UUID imageId,
             UpdateMemoryImageRequest request
     ) {
-        Memory memory = accessService.requireEditable(memoryId);
+        accessService.requireEditable(memoryId);
         MemoryImage image = find(memoryId, imageId);
         requireVersion(image, request.version());
         validateSection(memoryId, request.sectionId());
@@ -120,10 +118,7 @@ public class MemoryImageService {
                 clock.instant()
         );
         flushForUpdate();
-        ReadyMediaAsset asset = assetAccessService.requireReadyOwned(
-                image.getMediaAssetId(),
-                memory.getOwnerId()
-        );
+        ReadyMediaAsset asset = assetAccessService.requireReady(image.getMediaAssetId());
         return toResponse(image, asset);
     }
 
@@ -141,7 +136,7 @@ public class MemoryImageService {
             UUID memoryId,
             ReorderMemoryItemsRequest request
     ) {
-        Memory memory = accessService.requireEditable(memoryId);
+        accessService.requireEditable(memoryId);
         List<MemoryImage> images = imageRepository.findAllByMemoryIdOrderBySortOrderAsc(memoryId);
         validateOrder(images, request);
         List<UUID> currentOrder = images.stream().map(MemoryImage::getId).toList();
@@ -166,8 +161,7 @@ public class MemoryImageService {
             flushForUpdate();
             images.sort(Comparator.comparingInt(MemoryImage::getSortOrder));
         }
-        Map<UUID, ReadyMediaAsset> assets = assetAccessService.readyOwned(
-                memory.getOwnerId(),
+        Map<UUID, ReadyMediaAsset> assets = assetAccessService.ready(
                 images.stream().map(MemoryImage::getMediaAssetId).toList()
         );
         return images.stream().map(image -> toResponse(

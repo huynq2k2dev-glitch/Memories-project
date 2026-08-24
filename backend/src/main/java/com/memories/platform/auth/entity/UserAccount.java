@@ -103,6 +103,10 @@ public class UserAccount {
         return passwordHash;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
     public boolean isActive() {
         return status == UserStatus.ACTIVE && deletedAt == null;
     }

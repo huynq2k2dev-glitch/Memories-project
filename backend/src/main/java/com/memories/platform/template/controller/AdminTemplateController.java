@@ -2,6 +2,7 @@ package com.memories.platform.template.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
 import com.memories.platform.template.dto.AdminTemplateResponse;
+import com.memories.platform.template.dto.AdminTemplatePageResponse;
 import com.memories.platform.template.dto.AdminTemplateVersionResponse;
 import com.memories.platform.template.dto.CreateTemplateRequest;
 import com.memories.platform.template.dto.UpdateTemplateRequest;
@@ -17,9 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,8 +34,12 @@ public class AdminTemplateController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AdminTemplateResponse>> list(HttpServletRequest request) {
-        return ResponseEntity.ok(administrationService.list(correlationId(request)));
+    public ResponseEntity<AdminTemplatePageResponse> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.ok(administrationService.list(page, size, correlationId(request)));
     }
 
     @PostMapping

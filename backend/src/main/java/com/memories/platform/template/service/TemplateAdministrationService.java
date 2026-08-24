@@ -3,13 +3,13 @@ package com.memories.platform.template.service;
 import com.memories.platform.auth.service.AuthorizationService;
 import com.memories.platform.template.constants.TemplateConstants;
 import com.memories.platform.template.dto.AdminTemplateResponse;
+import com.memories.platform.template.dto.AdminTemplatePageResponse;
 import com.memories.platform.template.dto.AdminTemplateVersionResponse;
 import com.memories.platform.template.dto.CreateTemplateRequest;
 import com.memories.platform.template.dto.UpdateTemplateRequest;
 import com.memories.platform.template.dto.UpsertTemplateVersionRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,9 +26,9 @@ public class TemplateAdministrationService {
         this.persistenceService = persistenceService;
     }
 
-    public List<AdminTemplateResponse> list(String correlationId) {
+    public AdminTemplatePageResponse list(int page, int size, String correlationId) {
         authorize(correlationId);
-        return persistenceService.list();
+        return persistenceService.list(page, size);
     }
 
     public AdminTemplateResponse create(CreateTemplateRequest request, String correlationId) {

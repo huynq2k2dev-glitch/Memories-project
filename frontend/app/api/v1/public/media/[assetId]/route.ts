@@ -1,3 +1,5 @@
+import { selectMemoryAccessCookies } from "@/lib/backend-api";
+
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
 
 export async function GET(
@@ -45,6 +47,14 @@ export async function GET(
 }
 
 function forwardedHeaders(request: Request) {
+  const headers = new Headers();
   const correlationId = request.headers.get("X-Correlation-Id");
-  return correlationId ? { "X-Correlation-Id": correlationId } : undefined;
+  const cookie = selectMemoryAccessCookies(request.headers.get("Cookie"));
+  if (correlationId) {
+    headers.set("X-Correlation-Id", correlationId);
+  }
+  if (cookie) {
+    headers.set("Cookie", cookie);
+  }
+  return headers;
 }

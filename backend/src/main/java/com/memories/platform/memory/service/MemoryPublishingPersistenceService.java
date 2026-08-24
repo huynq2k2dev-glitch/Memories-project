@@ -13,7 +13,6 @@ import com.memories.platform.memory.entity.MemorySection;
 import com.memories.platform.memory.exception.InvalidMemorySectionContractException;
 import com.memories.platform.memory.exception.InvalidMemoryThemeException;
 import com.memories.platform.memory.exception.MemoryNotEditableException;
-import com.memories.platform.memory.exception.MemoryNotFoundException;
 import com.memories.platform.memory.exception.MemoryPublishValidationException;
 import com.memories.platform.memory.exception.MemoryVersionConflictException;
 import com.memories.platform.memory.repository.MemoryImageRepository;
@@ -41,6 +40,7 @@ import java.util.UUID;
 public class MemoryPublishingPersistenceService {
 
     private final MemoryRepository memoryRepository;
+    private final MemoryAccessService accessService;
     private final MemoryMemberRepository memberRepository;
     private final MemorySectionRepository sectionRepository;
     private final MemoryImageRepository imageRepository;
@@ -53,6 +53,7 @@ public class MemoryPublishingPersistenceService {
 
     public MemoryPublishingPersistenceService(
             MemoryRepository memoryRepository,
+            MemoryAccessService accessService,
             MemoryMemberRepository memberRepository,
             MemorySectionRepository sectionRepository,
             MemoryImageRepository imageRepository,
@@ -64,6 +65,7 @@ public class MemoryPublishingPersistenceService {
             Clock clock
     ) {
         this.memoryRepository = memoryRepository;
+        this.accessService = accessService;
         this.memberRepository = memberRepository;
         this.sectionRepository = sectionRepository;
         this.imageRepository = imageRepository;
@@ -82,18 +84,17 @@ public class MemoryPublishingPersistenceService {
             PublishMemoryRequest request,
             String correlationId
     ) {
-        Memory memory = memoryRepository.findByIdAndOwnerIdAndDeletedAtIsNull(memoryId, actorId)
-                .orElseThrow(MemoryNotFoundException::new);
+        Memory memory = accessService.requirePublish(memoryId);
         if (!memory.isDraft()) {
             throw new MemoryNotEditableException();
         }
         if (request.version() == null || memory.getVersion() != request.version()) {
             throw new MemoryVersionConflictException(memory.getVersion());
         }
-        if (!MemoryPublishingConstants.PUBLIC_VISIBILITIES.contains(memory.getVisibility())) {
+        if (!MemoryPublishingConstants.PUBLISHABLE_VISIBILITIES.contains(memory.getVisibility())) {
             throw validation(
                     "MEMORY_PUBLISH_VISIBILITY_INVALID",
-                    "Only PUBLIC or UNLISTED memories can be published by this operation."
+                    "The memory visibility is not publishable."
             );
         }
 
@@ -194,7 +195,7 @@ public class MemoryPublishingPersistenceService {
         imageRepository.findAllByMemoryIdOrderBySortOrderAsc(memory.getId()).stream()
                 .map(MemoryImage::getMediaAssetId)
                 .forEach(assetIds::add);
-        assetAccessService.readyOwnedMetadata(memory.getOwnerId(), assetIds);
+        assetAccessService.readyMetadata(assetIds);
     }
 
     private MemoryPublishValidationException validation(String code, String detail) {

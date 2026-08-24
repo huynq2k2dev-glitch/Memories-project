@@ -39,7 +39,28 @@ public class AuditLogService {
             String correlationId,
             String reasonCode
     ) {
-        save(actorUserId, action, entityType, entityId, result, correlationId, reasonCode);
+        recordWithMetadata(
+                actorUserId,
+                action,
+                entityType,
+                entityId,
+                result,
+                correlationId,
+                reasonCode == null ? Map.of() : Map.of("reasonCode", reasonCode)
+        );
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void recordWithMetadata(
+            UUID actorUserId,
+            String action,
+            String entityType,
+            UUID entityId,
+            AuditResult result,
+            String correlationId,
+            Map<String, ?> metadata
+    ) {
+        save(actorUserId, action, entityType, entityId, result, correlationId, metadata);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -52,7 +73,28 @@ public class AuditLogService {
             String correlationId,
             String reasonCode
     ) {
-        save(actorUserId, action, entityType, entityId, result, correlationId, reasonCode);
+        recordIsolatedWithMetadata(
+                actorUserId,
+                action,
+                entityType,
+                entityId,
+                result,
+                correlationId,
+                reasonCode == null ? Map.of() : Map.of("reasonCode", reasonCode)
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordIsolatedWithMetadata(
+            UUID actorUserId,
+            String action,
+            String entityType,
+            UUID entityId,
+            AuditResult result,
+            String correlationId,
+            Map<String, ?> metadata
+    ) {
+        save(actorUserId, action, entityType, entityId, result, correlationId, metadata);
     }
 
     private void save(
@@ -62,7 +104,7 @@ public class AuditLogService {
             UUID entityId,
             AuditResult result,
             String correlationId,
-            String reasonCode
+            Map<String, ?> metadata
     ) {
         auditLogRepository.save(new AuditLog(
                 UUID.randomUUID(),
@@ -72,9 +114,9 @@ public class AuditLogService {
                 entityId,
                 result.name(),
                 correlationId,
-                reasonCode == null
+                metadata == null
                         ? objectMapper.createObjectNode()
-                        : objectMapper.valueToTree(Map.of("reasonCode", reasonCode)),
+                        : objectMapper.valueToTree(metadata),
                 clock.instant()
         ));
     }

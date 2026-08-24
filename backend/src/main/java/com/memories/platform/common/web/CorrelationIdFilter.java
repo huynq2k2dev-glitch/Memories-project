@@ -17,7 +17,6 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String HEADER_NAME = "X-Correlation-Id";
     public static final String MDC_KEY = "correlationId";
     public static final String REQUEST_ATTRIBUTE = CorrelationIdFilter.class.getName() + ".correlationId";
-    private static final int MAX_CORRELATION_ID_LENGTH = 100;
 
     @Override
     protected void doFilterInternal(
@@ -43,10 +42,14 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         }
 
         String trimmedCorrelationId = requestedCorrelationId.trim();
-        if (trimmedCorrelationId.length() > MAX_CORRELATION_ID_LENGTH) {
-            return UUID.randomUUID().toString();
+        try {
+            UUID parsedCorrelationId = UUID.fromString(trimmedCorrelationId);
+            if (parsedCorrelationId.toString().equalsIgnoreCase(trimmedCorrelationId)) {
+                return parsedCorrelationId.toString();
+            }
+        } catch (IllegalArgumentException exception) {
+            // Invalid client values are replaced below.
         }
-
-        return trimmedCorrelationId;
+        return UUID.randomUUID().toString();
     }
 }

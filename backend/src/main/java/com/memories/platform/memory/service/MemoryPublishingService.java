@@ -3,6 +3,7 @@ package com.memories.platform.memory.service;
 import com.memories.platform.audit.dto.AuditResult;
 import com.memories.platform.audit.service.AuditLogService;
 import com.memories.platform.auth.service.CurrentActorService;
+import com.memories.platform.auth.exception.PermissionDeniedException;
 import com.memories.platform.memory.constants.MemoryPublishingConstants;
 import com.memories.platform.memory.dto.PublishMemoryRequest;
 import com.memories.platform.memory.dto.PublishMemoryResponse;
@@ -47,6 +48,7 @@ public class MemoryPublishingService {
             return persistenceService.publish(memoryId, actorId, request, correlationId);
         } catch (RuntimeException exception) {
             AuditResult result = exception instanceof MemoryNotFoundException
+                    || exception instanceof PermissionDeniedException
                     ? AuditResult.DENIED
                     : AuditResult.FAILURE;
             try {
@@ -76,6 +78,9 @@ public class MemoryPublishingService {
         }
         if (exception instanceof MemoryNotFoundException) {
             return "MEMORY_NOT_FOUND";
+        }
+        if (exception instanceof PermissionDeniedException) {
+            return "MEMORY_PUBLISH_DENIED";
         }
         if (exception instanceof MemoryVersionConflictException) {
             return "MEMORY_VERSION_CONFLICT";

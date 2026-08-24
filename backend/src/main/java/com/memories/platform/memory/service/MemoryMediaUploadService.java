@@ -11,11 +11,11 @@ import java.util.UUID;
 @Service
 public class MemoryMediaUploadService {
 
-    private final MemoryDraftAccessService accessService;
+    private final MemoryAccessService accessService;
     private final MediaUploadService uploadService;
 
     public MemoryMediaUploadService(
-            MemoryDraftAccessService accessService,
+            MemoryAccessService accessService,
             MediaUploadService uploadService
     ) {
         this.accessService = accessService;

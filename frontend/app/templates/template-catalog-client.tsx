@@ -9,10 +9,15 @@ import {
   RegisteredTemplateRenderer,
   supportsTemplateRenderer,
 } from "@/templates/registry";
+import MemoryCollaboratorEditor from "./memory-collaborator-editor";
 import MemoryContentEditor from "./memory-content-editor";
+import MemoryGuestEditor from "./memory-guest-editor";
+import MemoryMessageEditor from "./memory-message-editor";
 import MemoryMediaEditor from "./memory-media-editor";
+import MemoryLifecycleEditor from "./memory-lifecycle-editor";
 import MemoryPublishingEditor from "./memory-publishing-editor";
 import MemoryScheduleEditor from "./memory-schedule-editor";
+import MemoryShareLinkEditor from "./memory-share-link-editor";
 
 const MEMORY_TYPES = [
   "",
@@ -60,12 +65,13 @@ type SelectedTemplate = {
 
 type MemoryDetail = {
   id: string;
+  ownerId: string;
   templateVersionId: string;
   slug: string;
   title: string;
   memoryType: Exclude<MemoryType, "">;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-  visibility: "PRIVATE" | "UNLISTED" | "PUBLIC";
+  visibility: "PRIVATE" | "UNLISTED" | "PUBLIC" | "PASSWORD_PROTECTED";
   summary: string | null;
   themeConfig: Record<string, unknown>;
   settings: Record<string, unknown>;
@@ -73,7 +79,20 @@ type MemoryDetail = {
   eventStartAt: string | null;
   publishedAt: string | null;
   expiresAt: string | null;
+  updatedAt: string;
   version: number;
+  allowedSectionTypes: string[];
+  capabilities: {
+    owner: boolean;
+    collaboratorPermission: "VIEW" | "EDIT" | "ADMIN" | null;
+    canEdit: boolean;
+    canPublish: boolean;
+    canManageCollaborators: boolean;
+    canChangeAccessPolicy: boolean;
+    canManageGuests: boolean;
+    canArchive: boolean;
+    canDelete: boolean;
+  };
 };
 
 type MemoryProblem = {
@@ -164,6 +183,8 @@ export default function TemplateCatalogClient() {
           Áp dụng
         </button>
       </section>
+
+      <OpenMemoryForm />
 
       {error ? (
         <p className="form-note form-error" role="alert">
@@ -293,27 +314,6 @@ function CreateMemoryForm({ selected }: { selected: SelectedTemplate }) {
     }
   }
 
-  async function reload() {
-    if (!memory) {
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      const response = await authenticatedFetch(`/api/memories/${memory.id}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error((await readMemoryProblem(response)).detail);
-      }
-      setMemory((await response.json()) as MemoryDetail);
-    } catch (reason) {
-      setError(errorMessage(reason));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <div className="memory-draft-workspace">
       <form className="create-memory-form" onSubmit={create}>
@@ -336,83 +336,229 @@ function CreateMemoryForm({ selected }: { selected: SelectedTemplate }) {
         ) : null}
       </form>
       {memory ? (
+        <MemoryWorkspace
+          key={`${memory.id}-${memory.version}`}
+          initialMemory={memory}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function OpenMemoryForm() {
+  const [memoryId, setMemoryId] = useState("");
+  const [memory, setMemory] = useState<MemoryDetail | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function openExisting(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const response = await authenticatedFetch(
+        `/api/memories/${encodeURIComponent(memoryId.trim())}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) {
+        throw new Error((await readMemoryProblem(response)).detail);
+      }
+      setMemory((await response.json()) as MemoryDetail);
+    } catch (reason) {
+      setError(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="memory-open-panel">
+      <form className="create-memory-form" onSubmit={openExisting}>
+        <h3>Mở memory hiện có</h3>
+        <p className="form-note">
+          Owner hoặc cộng tác viên nhập ID memory để mở đúng workspace theo quyền
+          backend cấp.
+        </p>
+        <label htmlFor="existing-memory-id">Memory ID</label>
+        <input
+          id="existing-memory-id"
+          value={memoryId}
+          onChange={(event) => setMemoryId(event.target.value)}
+          required
+        />
+        <button type="submit" disabled={busy}>
+          {busy ? "Đang mở…" : "Mở memory"}
+        </button>
+        {error ? (
+          <p className="form-note form-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </form>
+      {memory ? (
+        <MemoryWorkspace
+          key={`${memory.id}-${memory.version}`}
+          initialMemory={memory}
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function MemoryWorkspace({ initialMemory }: { initialMemory: MemoryDetail }) {
+  const [memory, setMemory] = useState(initialMemory);
+  const [deleted, setDeleted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function reload() {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await authenticatedFetch(`/api/memories/${memory.id}`, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error((await readMemoryProblem(response)).detail);
+      }
+      setMemory((await response.json()) as MemoryDetail);
+    } catch (reason) {
+      setError(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (deleted) {
+    return (
+      <div className="memory-created" aria-live="polite">
+        Memory đã được xóa mềm. Dữ liệu được giữ lại cho chức năng khôi phục sau.
+      </div>
+    );
+  }
+
+  return (
+    <div className="memory-draft-workspace">
+      <div className="memory-created" aria-live="polite">
+        <strong>{memory.title}</strong>
+        <span>
+          {memory.status} · {memory.visibility} · phiên bản {memory.version}
+        </span>
+        <span>
+          Quyền: {memory.capabilities.owner
+            ? "OWNER"
+            : memory.capabilities.collaboratorPermission}
+        </span>
+        {memory.summary ? <p>{memory.summary}</p> : null}
+        <code>{memory.slug}</code>
+        <button type="button" disabled={busy} onClick={() => void reload()}>
+          Đọc lại chi tiết quản trị
+        </button>
+      </div>
+      {error ? (
+        <p className="form-note form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {memory.capabilities.canManageCollaborators ? (
+        <MemoryCollaboratorEditor memoryId={memory.id} onChanged={reload} />
+      ) : null}
+      {memory.capabilities.canManageCollaborators ? (
+        <MemoryShareLinkEditor
+          memoryId={memory.id}
+          visibility={memory.visibility}
+        />
+      ) : null}
+      {memory.capabilities.canManageGuests ? (
+        <MemoryGuestEditor memoryId={memory.id} />
+      ) : null}
+      {memory.capabilities.canManageCollaborators ? (
+        <MemoryMessageEditor
+          memoryId={memory.id}
+          memoryStatus={memory.status}
+          memoryVersion={memory.version}
+          moderationEnabled={memory.settings.messageModerationEnabled !== false}
+          onMemoryChanged={reload}
+        />
+      ) : null}
+      {memory.status === "DRAFT" && memory.capabilities.canEdit ? (
         <>
-          <div className="memory-created" aria-live="polite">
-            <strong>Đã tạo {memory.title}</strong>
-            <span>
-              {memory.status} · {memory.visibility} · phiên bản {memory.version}
-            </span>
-            {memory.summary ? <p>{memory.summary}</p> : null}
-            <code>{memory.slug}</code>
-            <button type="button" disabled={busy} onClick={() => void reload()}>
-              Đọc lại chi tiết quản trị
-            </button>
-          </div>
-          {memory.status === "DRAFT" ? (
-            <>
-              <MemoryEditor
-                key={`${memory.id}-${memory.version}`}
-                memory={memory}
-                onReload={reload}
-                onUpdated={setMemory}
-              />
-              <MemoryContentEditor
-                memoryId={memory.id}
-                allowedSectionTypes={selected.version.allowedSectionTypes}
-              />
-              <MemoryScheduleEditor memoryId={memory.id} />
-              <MemoryMediaEditor
-                memoryId={memory.id}
-                memoryVersion={memory.version}
-                coverAssetId={memory.coverAssetId}
-                onCoverUpdated={(result) =>
-                  setMemory((current) =>
-                    current
-                      ? {
-                          ...current,
-                          coverAssetId: result.coverAssetId,
-                          version: result.version,
-                        }
-                      : current,
-                  )
-                }
-              />
-            </>
-          ) : null}
-          <MemoryPublishingEditor
+          <MemoryEditor
+            key={`${memory.id}-${memory.version}`}
             memory={memory}
-            onPublished={(result) =>
-              setMemory((current) =>
-                current
-                  ? {
-                      ...current,
-                      status: result.status,
-                      visibility: result.visibility,
-                      publishedAt: result.publishedAt,
-                      version: result.version,
-                    }
-                  : current,
-              )
+            canChangeAccessPolicy={memory.capabilities.canChangeAccessPolicy}
+            onReload={reload}
+            onUpdated={setMemory}
+          />
+          <MemoryContentEditor
+            memoryId={memory.id}
+            allowedSectionTypes={memory.allowedSectionTypes}
+          />
+          <MemoryScheduleEditor memoryId={memory.id} />
+          <MemoryMediaEditor
+            memoryId={memory.id}
+            memoryVersion={memory.version}
+            coverAssetId={memory.coverAssetId}
+            onCoverUpdated={(result) =>
+              setMemory((current) => ({
+                ...current,
+                coverAssetId: result.coverAssetId,
+                version: result.version,
+              }))
             }
           />
         </>
       ) : null}
+      <MemoryPublishingEditor
+        memory={memory}
+        canPublish={memory.capabilities.canPublish}
+        onPublished={(result) =>
+          setMemory((current) => ({
+            ...current,
+            status: result.status,
+            visibility: result.visibility,
+            publishedAt: result.publishedAt,
+            version: result.version,
+          }))
+        }
+      />
+      <MemoryLifecycleEditor
+        memory={memory}
+        canArchive={memory.capabilities.canArchive}
+        canDelete={memory.capabilities.canDelete}
+        onArchived={(result) =>
+          setMemory((current) => ({
+            ...current,
+            status: result.status,
+            updatedAt: result.updatedAt,
+            version: result.version,
+            capabilities: {
+              ...current.capabilities,
+              canArchive: false,
+            },
+          }))
+        }
+        onDeleted={() => setDeleted(true)}
+      />
     </div>
   );
 }
 
 function MemoryEditor({
   memory,
+  canChangeAccessPolicy,
   onReload,
   onUpdated,
 }: {
   memory: MemoryDetail;
+  canChangeAccessPolicy: boolean;
   onReload: () => Promise<void>;
   onUpdated: (memory: MemoryDetail) => void;
 }) {
   const [title, setTitle] = useState(memory.title);
   const [summary, setSummary] = useState(memory.summary ?? "");
   const [visibility, setVisibility] = useState(memory.visibility);
+  const [accessPassword, setAccessPassword] = useState("");
   const [themeConfig, setThemeConfig] = useState(
     JSON.stringify(memory.themeConfig, null, 2),
   );
@@ -441,6 +587,7 @@ function MemoryEditor({
           title,
           summary,
           visibility,
+          accessPassword: accessPassword || null,
           themeConfig: parsedTheme,
           eventStartAt: toInstant(eventStartAt),
           expiresAt: toInstant(expiresAt),
@@ -452,6 +599,7 @@ function MemoryEditor({
         setConflict(problem.code === "MEMORY_VERSION_CONFLICT");
         throw new Error(problem.detail);
       }
+      setAccessPassword("");
       onUpdated((await response.json()) as MemoryDetail);
     } catch (reason) {
       setError(errorMessage(reason));
@@ -477,6 +625,9 @@ function MemoryEditor({
       <h3>Cập nhật draft</h3>
       <p className="form-note">
         Settings được giữ nguyên. Dữ liệu trong form không bị xóa khi lưu lỗi.
+        {!canChangeAccessPolicy
+          ? " Chỉ owner được đổi visibility hoặc mật khẩu truy cập."
+          : ""}
       </p>
 
       <label htmlFor="draft-title">Tiêu đề</label>
@@ -497,18 +648,48 @@ function MemoryEditor({
         rows={5}
       />
 
-      <label htmlFor="draft-visibility">Visibility</label>
-      <select
-        id="draft-visibility"
-        value={visibility}
-        onChange={(event) =>
-          setVisibility(event.target.value as MemoryDetail["visibility"])
-        }
-      >
-        <option value="PRIVATE">PRIVATE</option>
-        <option value="UNLISTED">UNLISTED</option>
-        <option value="PUBLIC">PUBLIC</option>
-      </select>
+      {canChangeAccessPolicy ? (
+        <>
+          <label htmlFor="draft-visibility">Visibility</label>
+          <select
+            id="draft-visibility"
+            value={visibility}
+            onChange={(event) => {
+              const nextVisibility = event.target
+                .value as MemoryDetail["visibility"];
+              setVisibility(nextVisibility);
+              if (nextVisibility !== "PASSWORD_PROTECTED") {
+                setAccessPassword("");
+              }
+            }}
+          >
+            <option value="PRIVATE">PRIVATE</option>
+            <option value="UNLISTED">UNLISTED</option>
+            <option value="PUBLIC">PUBLIC</option>
+            <option value="PASSWORD_PROTECTED">PASSWORD_PROTECTED</option>
+          </select>
+
+          {visibility === "PASSWORD_PROTECTED" ? (
+            <>
+              <label htmlFor="draft-access-password">Mật khẩu truy cập</label>
+              <input
+                id="draft-access-password"
+                type="password"
+                value={accessPassword}
+                onChange={(event) => setAccessPassword(event.target.value)}
+                autoComplete="new-password"
+                maxLength={72}
+                required={memory.visibility !== "PASSWORD_PROTECTED"}
+              />
+              <p className="form-note">
+                {memory.visibility === "PASSWORD_PROTECTED"
+                  ? "Để trống để giữ mật khẩu hiện tại. Nhập mật khẩu mới sẽ thu hồi các lượt truy cập đã cấp."
+                  : "Mật khẩu là bắt buộc khi chuyển sang PASSWORD_PROTECTED."}
+              </p>
+            </>
+          ) : null}
+        </>
+      ) : null}
 
       <label htmlFor="draft-event-start">Thời điểm sự kiện</label>
       <input
@@ -606,6 +787,7 @@ function catalogPreviewPayload(selected: SelectedTemplate): MemoryRenderPayload 
     locations: [],
     events: [],
     images: [],
+    messages: [],
   };
 }
 
