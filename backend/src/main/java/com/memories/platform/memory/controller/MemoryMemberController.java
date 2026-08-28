@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.CreateMemoryMemberRequest;
 import com.memories.platform.memory.dto.MemoryMemberResponse;
 import com.memories.platform.memory.dto.ReorderMemoryItemsRequest;
@@ -32,11 +33,13 @@ public class MemoryMemberController {
         this.memberService = memberService;
     }
 
+    @LogActivity("List members in a memory")
     @GetMapping
     public ResponseEntity<List<MemoryMemberResponse>> list(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(memberService.list(memoryId));
     }
 
+    @LogActivity("Create a memory member")
     @PostMapping
     public ResponseEntity<MemoryMemberResponse> create(
             @PathVariable UUID memoryId,
@@ -47,6 +50,7 @@ public class MemoryMemberController {
         );
     }
 
+    @LogActivity("Reorder memory members")
     @PutMapping("/order")
     public ResponseEntity<List<MemoryMemberResponse>> reorder(
             @PathVariable UUID memoryId,
@@ -55,6 +59,7 @@ public class MemoryMemberController {
         return ResponseEntity.ok(memberService.reorder(memoryId, request));
     }
 
+    @LogActivity("Update a memory member")
     @PutMapping("/{memberId}")
     public ResponseEntity<MemoryMemberResponse> update(
             @PathVariable UUID memoryId,
@@ -64,6 +69,7 @@ public class MemoryMemberController {
         return ResponseEntity.ok(memberService.update(memoryId, memberId, request));
     }
 
+    @LogActivity("Update a memory member avatar")
     @PutMapping("/{memberId}/avatar")
     public ResponseEntity<MemoryMemberResponse> updateAvatar(
             @PathVariable UUID memoryId,
@@ -73,6 +79,7 @@ public class MemoryMemberController {
         return ResponseEntity.ok(memberService.updateAvatar(memoryId, memberId, request));
     }
 
+    @LogActivity("Delete a memory member")
     @DeleteMapping("/{memberId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID memoryId,

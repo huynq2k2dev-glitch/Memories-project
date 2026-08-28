@@ -6,12 +6,17 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "memory_collaborators")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryCollaborator {
 
     @Id
@@ -42,9 +47,6 @@ public class MemoryCollaborator {
 
     @Column(name = "revoked_at")
     private Instant revokedAt;
-
-    protected MemoryCollaborator() {
-    }
 
     public MemoryCollaborator(
             UUID id,
@@ -89,41 +91,5 @@ public class MemoryCollaborator {
 
     public boolean isActive() {
         return status == MemoryCollaboratorStatus.ACTIVE;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public MemoryCollaboratorPermission getPermission() {
-        return permission;
-    }
-
-    public MemoryCollaboratorStatus getStatus() {
-        return status;
-    }
-
-    public UUID getInvitedBy() {
-        return invitedBy;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public Instant getRevokedAt() {
-        return revokedAt;
     }
 }

@@ -1,6 +1,7 @@
 package com.memories.platform.guest.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.guest.dto.GuestMessageModerationResponse;
 import com.memories.platform.guest.dto.GuestMessagePageResponse;
 import com.memories.platform.guest.dto.ModerateGuestMessageRequest;
@@ -37,6 +38,7 @@ public class MemoryGuestMessageController {
         this.settingsService = settingsService;
     }
 
+    @LogActivity("List guest messages for moderation")
     @GetMapping
     public ResponseEntity<GuestMessagePageResponse> list(
             @PathVariable UUID memoryId,
@@ -47,6 +49,7 @@ public class MemoryGuestMessageController {
         return ResponseEntity.ok(messageService.list(memoryId, status, page, size));
     }
 
+    @LogActivity("Moderate a guest message")
     @PutMapping("/{messageId}")
     public ResponseEntity<GuestMessageModerationResponse> moderate(
             @PathVariable UUID memoryId,
@@ -62,6 +65,7 @@ public class MemoryGuestMessageController {
         ));
     }
 
+    @LogActivity("Update guest message moderation settings")
     @PutMapping("/settings")
     public ResponseEntity<MessageModerationSettingsResponse> updateSettings(
             @PathVariable UUID memoryId,

@@ -1,6 +1,7 @@
 package com.memories.platform.memory.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.guest.dto.ShareLinkGuestResponse;
 import com.memories.platform.memory.dto.CreateShareLinkRequest;
 import com.memories.platform.memory.dto.IssuedShareLinkResponse;
@@ -30,11 +31,13 @@ public class MemoryShareLinkController {
         this.shareLinkService = shareLinkService;
     }
 
+    @LogActivity("List share links for a memory")
     @GetMapping
     public ResponseEntity<List<ShareLinkResponse>> list(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(shareLinkService.list(memoryId));
     }
 
+    @LogActivity("List guests eligible for RSVP share links")
     @GetMapping("/guests")
     public ResponseEntity<List<ShareLinkGuestResponse>> eligibleGuests(
             @PathVariable UUID memoryId
@@ -42,6 +45,7 @@ public class MemoryShareLinkController {
         return ResponseEntity.ok(shareLinkService.eligibleGuests(memoryId));
     }
 
+    @LogActivity("Issue a share link for a memory")
     @PostMapping
     public ResponseEntity<IssuedShareLinkResponse> issue(
             @PathVariable UUID memoryId,
@@ -55,6 +59,7 @@ public class MemoryShareLinkController {
         ));
     }
 
+    @LogActivity("Revoke a memory share link")
     @PostMapping("/{shareLinkId}/revoke")
     public ResponseEntity<Void> revoke(
             @PathVariable UUID memoryId,

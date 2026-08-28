@@ -1,5 +1,6 @@
 package com.memories.platform.guest.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.guest.dto.GuestInvitationResponse;
 import com.memories.platform.guest.dto.GuestRsvpResponse;
 import com.memories.platform.guest.dto.SubmitGuestRsvpRequest;
@@ -23,6 +24,7 @@ public class PublicGuestController {
         this.guestService = guestService;
     }
 
+    @LogActivity("Get a guest invitation by access token")
     @GetMapping("/{accessToken}")
     public ResponseEntity<GuestInvitationResponse> invitation(
             @PathVariable String accessToken
@@ -30,6 +32,7 @@ public class PublicGuestController {
         return ResponseEntity.ok(guestService.invitation(accessToken));
     }
 
+    @LogActivity("Submit a guest RSVP response")
     @PostMapping("/{accessToken}/responses")
     public ResponseEntity<GuestRsvpResponse> respond(
             @PathVariable String accessToken,

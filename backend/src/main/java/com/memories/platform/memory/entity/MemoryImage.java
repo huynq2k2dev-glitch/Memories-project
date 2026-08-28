@@ -5,12 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "memory_images")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryImage {
 
     @Id
@@ -52,9 +57,6 @@ public class MemoryImage {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected MemoryImage() {
-    }
 
     public MemoryImage(
             UUID id,
@@ -102,49 +104,5 @@ public class MemoryImage {
         this.sortOrder = sortOrder;
         this.updatedAt = now;
         this.updatedBy = actorId;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public UUID getMediaAssetId() {
-        return mediaAssetId;
-    }
-
-    public UUID getSectionId() {
-        return sectionId;
-    }
-
-    public String getCaption() {
-        return caption;
-    }
-
-    public String getAltText() {
-        return altText;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public boolean isCoverCandidate() {
-        return coverCandidate;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

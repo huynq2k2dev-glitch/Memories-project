@@ -4,14 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.memories.platform.auth.exception.PermissionDeniedException;
 import com.memories.platform.auth.service.CurrentActorService;
 import com.memories.platform.media.service.MediaAssetAccessService;
+import com.memories.platform.media.dto.MediaDeliveryResponse;
+import com.memories.platform.media.service.MediaDeliveryService;
 import com.memories.platform.memory.dto.CreateMemoryRequest;
 import com.memories.platform.memory.dto.MemoryCoverResponse;
 import com.memories.platform.memory.dto.MemoryDetailResponse;
+import com.memories.platform.memory.dto.MemoryPageResponse;
+import com.memories.platform.memory.dto.MemorySummaryCoverResponse;
+import com.memories.platform.memory.dto.MemorySummaryResponse;
 import com.memories.platform.memory.dto.UpdateMemoryAssetReferenceRequest;
 import com.memories.platform.memory.dto.UpdateMemoryRequest;
 import com.memories.platform.memory.constants.MemoryMessageConstants;
 import com.memories.platform.memory.entity.Memory;
 import com.memories.platform.memory.exception.MemorySlugConflictException;
+import com.memories.platform.memory.exception.InvalidMemoryQueryException;
 import com.memories.platform.memory.exception.MemoryTemplateTypeMismatchException;
 import com.memories.platform.memory.exception.InvalidMemoryThemeException;
 import com.memories.platform.memory.exception.MemoryVersionConflictException;
@@ -21,6 +27,9 @@ import com.memories.platform.template.service.TemplateSelectionService;
 import com.memories.platform.template.service.TemplateSectionContractService;
 import com.memories.platform.template.service.TemplateThemeConfigService;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +42,8 @@ import java.util.UUID;
 @Service
 public class MemoryService {
 
+    private static final int MAXIMUM_PAGE_SIZE = 50;
+
     private final MemoryRepository memoryRepository;
     private final TemplateSelectionService templateSelectionService;
     private final CurrentActorService currentActorService;
@@ -42,6 +53,7 @@ public class MemoryService {
     private final TemplateThemeConfigService themeConfigService;
     private final TemplateSectionContractService sectionContractService;
     private final MediaAssetAccessService assetAccessService;
+    private final MediaDeliveryService mediaDeliveryService;
     private final MemoryPasswordAccessService passwordAccessService;
     private final ObjectMapper objectMapper;
     private final Clock clock;
@@ -56,6 +68,7 @@ public class MemoryService {
             TemplateThemeConfigService themeConfigService,
             TemplateSectionContractService sectionContractService,
             MediaAssetAccessService assetAccessService,
+            MediaDeliveryService mediaDeliveryService,
             MemoryPasswordAccessService passwordAccessService,
             ObjectMapper objectMapper,
             Clock clock
@@ -69,9 +82,33 @@ public class MemoryService {
         this.themeConfigService = themeConfigService;
         this.sectionContractService = sectionContractService;
         this.assetAccessService = assetAccessService;
+        this.mediaDeliveryService = mediaDeliveryService;
         this.passwordAccessService = passwordAccessService;
         this.objectMapper = objectMapper;
         this.clock = clock;
+    }
+
+    @Transactional(readOnly = true)
+    public MemoryPageResponse listOwned(int pageNumber, int pageSize) {
+        if (pageNumber < 0 || pageSize < 1 || pageSize > MAXIMUM_PAGE_SIZE) {
+            throw new InvalidMemoryQueryException();
+        }
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Order.desc("updatedAt"), Sort.Order.desc("id"))
+        );
+        Page<Memory> memoryPage = memoryRepository.findByOwnerIdAndDeletedAtIsNull(
+                currentActorService.userId(),
+                pageRequest
+        );
+        return new MemoryPageResponse(
+                memoryPage.getContent().stream().map(this::toSummaryResponse).toList(),
+                memoryPage.getNumber(),
+                memoryPage.getSize(),
+                memoryPage.getTotalElements(),
+                memoryPage.getTotalPages()
+        );
     }
 
     @Transactional
@@ -209,6 +246,27 @@ public class MemoryService {
                 memory.getVersion(),
                 sectionContractService.allowedSectionTypes(memory.getTemplateVersionId()),
                 accessService.capabilities(memory)
+        );
+    }
+
+    private MemorySummaryResponse toSummaryResponse(Memory memory) {
+        MemorySummaryCoverResponse cover = null;
+        if (memory.getCoverAssetId() != null) {
+            MediaDeliveryResponse delivery = mediaDeliveryService.delivery(memory.getCoverAssetId());
+            cover = new MemorySummaryCoverResponse(
+                    memory.getCoverAssetId(),
+                    delivery.mimeType(),
+                    delivery.url()
+            );
+        }
+        return new MemorySummaryResponse(
+                memory.getId(),
+                memory.getTitle(),
+                memory.getMemoryType(),
+                memory.getStatus(),
+                memory.getSlug(),
+                cover,
+                memory.getUpdatedAt()
         );
     }
 }

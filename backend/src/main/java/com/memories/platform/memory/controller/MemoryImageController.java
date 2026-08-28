@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.CreateMemoryImageRequest;
 import com.memories.platform.memory.dto.MemoryImageResponse;
 import com.memories.platform.memory.dto.ReorderMemoryItemsRequest;
@@ -31,11 +32,13 @@ public class MemoryImageController {
         this.imageService = imageService;
     }
 
+    @LogActivity("List images in a memory")
     @GetMapping
     public ResponseEntity<List<MemoryImageResponse>> list(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(imageService.list(memoryId));
     }
 
+    @LogActivity("Add an image to a memory")
     @PostMapping
     public ResponseEntity<MemoryImageResponse> create(
             @PathVariable UUID memoryId,
@@ -46,6 +49,7 @@ public class MemoryImageController {
         );
     }
 
+    @LogActivity("Reorder memory images")
     @PutMapping("/order")
     public ResponseEntity<List<MemoryImageResponse>> reorder(
             @PathVariable UUID memoryId,
@@ -54,6 +58,7 @@ public class MemoryImageController {
         return ResponseEntity.ok(imageService.reorder(memoryId, request));
     }
 
+    @LogActivity("Update a memory image")
     @PutMapping("/{imageId}")
     public ResponseEntity<MemoryImageResponse> update(
             @PathVariable UUID memoryId,
@@ -63,6 +68,7 @@ public class MemoryImageController {
         return ResponseEntity.ok(imageService.update(memoryId, imageId, request));
     }
 
+    @LogActivity("Delete a memory image")
     @DeleteMapping("/{imageId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID memoryId,

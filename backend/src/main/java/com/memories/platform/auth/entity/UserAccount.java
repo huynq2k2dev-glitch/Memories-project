@@ -9,6 +9,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -16,6 +19,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserAccount {
 
     @Id
@@ -65,9 +70,6 @@ public class UserAccount {
     @Column(nullable = false)
     private long version;
 
-    protected UserAccount() {
-    }
-
     public UserAccount(
             UUID id,
             String email,
@@ -85,26 +87,6 @@ public class UserAccount {
         this.failedLoginCount = 0;
         this.createdAt = now;
         this.updatedAt = now;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public String getDisplayName() {
-        return displayName;
     }
 
     public boolean isActive() {

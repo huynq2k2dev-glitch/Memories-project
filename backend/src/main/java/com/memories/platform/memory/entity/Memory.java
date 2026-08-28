@@ -9,6 +9,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -17,6 +20,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "memories")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Memory {
 
     @Id
@@ -90,9 +95,6 @@ public class Memory {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected Memory() {
-    }
 
     public Memory(
             UUID id,
@@ -176,81 +178,5 @@ public class Memory {
 
     public boolean isDraft() {
         return status == MemoryStatus.DRAFT;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getOwnerId() {
-        return ownerId;
-    }
-
-    public UUID getTemplateVersionId() {
-        return templateVersionId;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public MemoryType getMemoryType() {
-        return memoryType;
-    }
-
-    public MemoryStatus getStatus() {
-        return status;
-    }
-
-    public MemoryVisibility getVisibility() {
-        return visibility;
-    }
-
-    public String getAccessPasswordHash() {
-        return accessPasswordHash;
-    }
-
-    public String getSummary() {
-        return summary;
-    }
-
-    public JsonNode getThemeConfig() {
-        return themeConfig;
-    }
-
-    public JsonNode getSettings() {
-        return settings;
-    }
-
-    public UUID getCoverAssetId() {
-        return coverAssetId;
-    }
-
-    public Instant getEventStartAt() {
-        return eventStartAt;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

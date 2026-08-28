@@ -8,11 +8,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "user_roles")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserRole {
 
     @EmbeddedId
@@ -30,9 +35,6 @@ public class UserRole {
 
     @Column(name = "granted_at", nullable = false)
     private Instant grantedAt;
-
-    protected UserRole() {
-    }
 
     public UserRole(UserAccount user, Role role, Instant grantedAt) {
         this.id = new UserRoleId(user.getId(), role.getId());

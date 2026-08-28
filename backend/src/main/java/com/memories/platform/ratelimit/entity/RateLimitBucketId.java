@@ -1,17 +1,18 @@
 package com.memories.platform.ratelimit.entity;
 
 import com.memories.platform.ratelimit.constants.RateLimitScope;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+@Getter
+@NoArgsConstructor
 public class RateLimitBucketId implements Serializable {
 
     private RateLimitScope scope;
     private String subjectKey;
-
-    public RateLimitBucketId() {
-    }
 
     public RateLimitBucketId(RateLimitScope scope, String subjectKey) {
         this.scope = scope;

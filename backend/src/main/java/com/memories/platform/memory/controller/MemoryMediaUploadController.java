@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.media.dto.InitiateMediaUploadRequest;
 import com.memories.platform.media.dto.InitiateMediaUploadResponse;
 import com.memories.platform.memory.service.MemoryMediaUploadService;
@@ -24,6 +25,7 @@ public class MemoryMediaUploadController {
         this.uploadService = uploadService;
     }
 
+    @LogActivity("Initiate a media upload for a memory")
     @PostMapping
     public ResponseEntity<InitiateMediaUploadResponse> initiate(
             @PathVariable UUID memoryId,

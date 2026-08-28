@@ -1,6 +1,7 @@
 package com.memories.platform.template.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.template.dto.AdminTemplateResponse;
 import com.memories.platform.template.dto.AdminTemplatePageResponse;
 import com.memories.platform.template.dto.AdminTemplateVersionResponse;
@@ -33,6 +34,7 @@ public class AdminTemplateController {
         this.administrationService = administrationService;
     }
 
+    @LogActivity("List templates for administration")
     @GetMapping
     public ResponseEntity<AdminTemplatePageResponse> list(
             @RequestParam(defaultValue = "0") int page,
@@ -42,6 +44,7 @@ public class AdminTemplateController {
         return ResponseEntity.ok(administrationService.list(page, size, correlationId(request)));
     }
 
+    @LogActivity("Create a template")
     @PostMapping
     public ResponseEntity<AdminTemplateResponse> create(
             @Valid @RequestBody CreateTemplateRequest body,
@@ -51,6 +54,7 @@ public class AdminTemplateController {
                 .body(administrationService.create(body, correlationId(request)));
     }
 
+    @LogActivity("Update template metadata")
     @PutMapping("/{templateId}")
     public ResponseEntity<AdminTemplateResponse> update(
             @PathVariable UUID templateId,
@@ -60,6 +64,7 @@ public class AdminTemplateController {
         return ResponseEntity.ok(administrationService.update(templateId, body, correlationId(request)));
     }
 
+    @LogActivity("Create a template version")
     @PostMapping("/{templateId}/versions")
     public ResponseEntity<AdminTemplateVersionResponse> createVersion(
             @PathVariable UUID templateId,
@@ -70,6 +75,7 @@ public class AdminTemplateController {
                 .body(administrationService.createVersion(templateId, body, correlationId(request)));
     }
 
+    @LogActivity("Update a draft template version")
     @PutMapping("/{templateId}/versions/{versionId}")
     public ResponseEntity<AdminTemplateVersionResponse> updateVersion(
             @PathVariable UUID templateId,
@@ -85,6 +91,7 @@ public class AdminTemplateController {
         ));
     }
 
+    @LogActivity("Publish a template version")
     @PostMapping("/{templateId}/versions/{versionId}/publish")
     public ResponseEntity<AdminTemplateVersionResponse> publish(
             @PathVariable UUID templateId,
@@ -98,6 +105,7 @@ public class AdminTemplateController {
         ));
     }
 
+    @LogActivity("Deprecate a template version")
     @PostMapping("/{templateId}/versions/{versionId}/deprecate")
     public ResponseEntity<AdminTemplateVersionResponse> deprecate(
             @PathVariable UUID templateId,

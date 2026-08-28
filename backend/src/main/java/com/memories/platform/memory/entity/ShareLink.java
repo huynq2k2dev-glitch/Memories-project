@@ -6,12 +6,17 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "share_links")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShareLink {
 
     @Id
@@ -52,9 +57,6 @@ public class ShareLink {
     @Column(name = "revoked_at")
     private Instant revokedAt;
 
-    protected ShareLink() {
-    }
-
     public ShareLink(
             UUID id,
             UUID memoryId,
@@ -91,49 +93,5 @@ public class ShareLink {
         }
         useCount++;
         return true;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public ShareLinkPermission getPermission() {
-        return permission;
-    }
-
-    public UUID getGuestId() {
-        return guestId;
-    }
-
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
-
-    public Integer getMaxUses() {
-        return maxUses;
-    }
-
-    public int getUseCount() {
-        return useCount;
-    }
-
-    public ShareLinkStatus getStatus() {
-        return status;
-    }
-
-    public UUID getCreatedBy() {
-        return createdBy;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getRevokedAt() {
-        return revokedAt;
     }
 }

@@ -2,12 +2,17 @@ package com.memories.platform.auth.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
 @Embeddable
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserRoleId implements Serializable {
 
     @Column(name = "user_id")
@@ -15,9 +20,6 @@ public class UserRoleId implements Serializable {
 
     @Column(name = "role_id")
     private UUID roleId;
-
-    protected UserRoleId() {
-    }
 
     public UserRoleId(UUID userId, UUID roleId) {
         this.userId = userId;

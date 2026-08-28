@@ -4,6 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -12,6 +15,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "memory_access_grants")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryAccessGrant {
 
     @Id
@@ -35,9 +40,6 @@ public class MemoryAccessGrant {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    protected MemoryAccessGrant() {
-    }
 
     public MemoryAccessGrant(
             UUID id,

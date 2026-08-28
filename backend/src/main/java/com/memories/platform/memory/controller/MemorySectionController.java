@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.CreateMemorySectionRequest;
 import com.memories.platform.memory.dto.MemorySectionResponse;
 import com.memories.platform.memory.dto.ReorderMemoryItemsRequest;
@@ -31,11 +32,13 @@ public class MemorySectionController {
         this.sectionService = sectionService;
     }
 
+    @LogActivity("List sections in a memory")
     @GetMapping
     public ResponseEntity<List<MemorySectionResponse>> list(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(sectionService.list(memoryId));
     }
 
+    @LogActivity("Create a memory section")
     @PostMapping
     public ResponseEntity<MemorySectionResponse> create(
             @PathVariable UUID memoryId,
@@ -46,6 +49,7 @@ public class MemorySectionController {
         );
     }
 
+    @LogActivity("Reorder memory sections")
     @PutMapping("/order")
     public ResponseEntity<List<MemorySectionResponse>> reorder(
             @PathVariable UUID memoryId,
@@ -54,6 +58,7 @@ public class MemorySectionController {
         return ResponseEntity.ok(sectionService.reorder(memoryId, request));
     }
 
+    @LogActivity("Update a memory section")
     @PutMapping("/{sectionId}")
     public ResponseEntity<MemorySectionResponse> update(
             @PathVariable UUID memoryId,
@@ -63,6 +68,7 @@ public class MemorySectionController {
         return ResponseEntity.ok(sectionService.update(memoryId, sectionId, request));
     }
 
+    @LogActivity("Delete a memory section")
     @DeleteMapping("/{sectionId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID memoryId,

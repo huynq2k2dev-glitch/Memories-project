@@ -5,6 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -15,6 +18,8 @@ import java.util.UUID;
 @Entity
 @Immutable
 @Table(name = "audit_logs")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AuditLog {
 
     @Id
@@ -47,9 +52,6 @@ public class AuditLog {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    protected AuditLog() {
-    }
 
     public AuditLog(
             UUID id,

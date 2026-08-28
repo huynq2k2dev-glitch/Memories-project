@@ -1,11 +1,13 @@
 package com.memories.platform.memory.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.ArchiveMemoryRequest;
 import com.memories.platform.memory.dto.CreateMemoryRequest;
 import com.memories.platform.memory.dto.MemoryCoverResponse;
 import com.memories.platform.memory.dto.MemoryDetailResponse;
 import com.memories.platform.memory.dto.MemoryLifecycleResponse;
+import com.memories.platform.memory.dto.MemoryPageResponse;
 import com.memories.platform.memory.dto.MemoryRenderResponse;
 import com.memories.platform.memory.dto.PublishMemoryRequest;
 import com.memories.platform.memory.dto.PublishMemoryResponse;
@@ -52,6 +54,7 @@ public class MemoryController {
         this.renderService = renderService;
     }
 
+    @LogActivity("Create a memory")
     @PostMapping
     public ResponseEntity<MemoryDetailResponse> create(
             @Valid @RequestBody CreateMemoryRequest request
@@ -59,11 +62,22 @@ public class MemoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(memoryService.create(request));
     }
 
+    @LogActivity("List memories owned by the current account")
+    @GetMapping
+    public ResponseEntity<MemoryPageResponse> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        return ResponseEntity.ok(memoryService.listOwned(page, size));
+    }
+
+    @LogActivity("Get memory details")
     @GetMapping("/{memoryId}")
     public ResponseEntity<MemoryDetailResponse> get(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(memoryService.get(memoryId));
     }
 
+    @LogActivity("Update memory details")
     @PutMapping("/{memoryId}")
     public ResponseEntity<MemoryDetailResponse> update(
             @PathVariable UUID memoryId,
@@ -72,6 +86,7 @@ public class MemoryController {
         return ResponseEntity.ok(memoryService.update(memoryId, request));
     }
 
+    @LogActivity("Update a memory cover")
     @PutMapping("/{memoryId}/cover")
     public ResponseEntity<MemoryCoverResponse> updateCover(
             @PathVariable UUID memoryId,
@@ -80,11 +95,13 @@ public class MemoryController {
         return ResponseEntity.ok(memoryService.updateCover(memoryId, request));
     }
 
+    @LogActivity("Preview a memory")
     @GetMapping("/{memoryId}/preview")
     public ResponseEntity<MemoryRenderResponse> preview(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(renderService.preview(memoryId));
     }
 
+    @LogActivity("Publish a memory")
     @PostMapping("/{memoryId}/publish")
     public ResponseEntity<PublishMemoryResponse> publish(
             @PathVariable UUID memoryId,
@@ -97,6 +114,7 @@ public class MemoryController {
         return ResponseEntity.ok(publishingService.publish(memoryId, request, correlationId));
     }
 
+    @LogActivity("Archive a memory")
     @PostMapping("/{memoryId}/archive")
     public ResponseEntity<MemoryLifecycleResponse> archive(
             @PathVariable UUID memoryId,
@@ -109,6 +127,7 @@ public class MemoryController {
         return ResponseEntity.ok(lifecycleService.archive(memoryId, request, correlationId));
     }
 
+    @LogActivity("Soft-delete a memory")
     @DeleteMapping("/{memoryId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID memoryId,

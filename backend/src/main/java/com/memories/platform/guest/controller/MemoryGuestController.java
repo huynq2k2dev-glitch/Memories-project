@@ -1,5 +1,6 @@
 package com.memories.platform.guest.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.guest.dto.CreateMemoryGuestRequest;
 import com.memories.platform.guest.dto.GuestAccessTokenResponse;
 import com.memories.platform.guest.dto.MemoryGuestPageResponse;
@@ -31,6 +32,7 @@ public class MemoryGuestController {
         this.guestService = guestService;
     }
 
+    @LogActivity("List guests for a memory")
     @GetMapping
     public ResponseEntity<MemoryGuestPageResponse> list(
             @PathVariable UUID memoryId,
@@ -40,6 +42,7 @@ public class MemoryGuestController {
         return ResponseEntity.ok(guestService.list(memoryId, page, size));
     }
 
+    @LogActivity("Add a guest to a memory")
     @PostMapping
     public ResponseEntity<MemoryGuestResponse> create(
             @PathVariable UUID memoryId,
@@ -50,6 +53,7 @@ public class MemoryGuestController {
         );
     }
 
+    @LogActivity("Update a memory guest")
     @PutMapping("/{guestId}")
     public ResponseEntity<MemoryGuestResponse> update(
             @PathVariable UUID memoryId,
@@ -59,6 +63,7 @@ public class MemoryGuestController {
         return ResponseEntity.ok(guestService.update(memoryId, guestId, request));
     }
 
+    @LogActivity("Issue an access token for a memory guest")
     @PostMapping("/{guestId}/access-token")
     public ResponseEntity<GuestAccessTokenResponse> issueAccessToken(
             @PathVariable UUID memoryId,
@@ -70,6 +75,7 @@ public class MemoryGuestController {
         );
     }
 
+    @LogActivity("Disable a memory guest")
     @PostMapping("/{guestId}/disable")
     public ResponseEntity<Void> disable(
             @PathVariable UUID memoryId,

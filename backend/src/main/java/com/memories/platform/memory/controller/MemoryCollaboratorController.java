@@ -1,6 +1,7 @@
 package com.memories.platform.memory.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.AddMemoryCollaboratorRequest;
 import com.memories.platform.memory.dto.MemoryCollaboratorResponse;
 import com.memories.platform.memory.dto.UpdateMemoryCollaboratorRequest;
@@ -31,6 +32,7 @@ public class MemoryCollaboratorController {
         this.collaborationService = collaborationService;
     }
 
+    @LogActivity("List collaborators for a memory")
     @GetMapping
     public ResponseEntity<List<MemoryCollaboratorResponse>> list(
             @PathVariable UUID memoryId
@@ -38,6 +40,7 @@ public class MemoryCollaboratorController {
         return ResponseEntity.ok(collaborationService.list(memoryId));
     }
 
+    @LogActivity("Add a collaborator to a memory")
     @PostMapping
     public ResponseEntity<MemoryCollaboratorResponse> add(
             @PathVariable UUID memoryId,
@@ -51,6 +54,7 @@ public class MemoryCollaboratorController {
         ));
     }
 
+    @LogActivity("Change a memory collaborator's permission")
     @PutMapping("/{collaboratorId}")
     public ResponseEntity<MemoryCollaboratorResponse> changePermission(
             @PathVariable UUID memoryId,
@@ -66,6 +70,7 @@ public class MemoryCollaboratorController {
         ));
     }
 
+    @LogActivity("Revoke a memory collaborator")
     @DeleteMapping("/{collaboratorId}")
     public ResponseEntity<Void> revoke(
             @PathVariable UUID memoryId,

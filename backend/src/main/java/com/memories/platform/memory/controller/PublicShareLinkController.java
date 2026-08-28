@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.guest.dto.GuestInvitationResponse;
 import com.memories.platform.guest.dto.GuestRsvpResponse;
 import com.memories.platform.guest.dto.SubmitGuestRsvpRequest;
@@ -33,6 +34,7 @@ public class PublicShareLinkController {
         this.shareLinkService = shareLinkService;
     }
 
+    @LogActivity("Redeem a public memory share link")
     @PostMapping("/shares/{accessToken}/redeem")
     public ResponseEntity<RedeemShareLinkResponse> redeem(
             @PathVariable String accessToken
@@ -50,6 +52,7 @@ public class PublicShareLinkController {
                 ));
     }
 
+    @LogActivity("Get the RSVP invitation for a redeemed share link")
     @GetMapping("/memories/{slug}/share-rsvp")
     public ResponseEntity<GuestInvitationResponse> rsvpInvitation(
             @PathVariable String slug,
@@ -60,6 +63,7 @@ public class PublicShareLinkController {
                 .body(shareLinkService.rsvpInvitation(slug, cookies(request)));
     }
 
+    @LogActivity("Submit an RSVP response through a share link")
     @PostMapping("/memories/{slug}/share-rsvp/responses")
     public ResponseEntity<GuestRsvpResponse> respond(
             @PathVariable String slug,

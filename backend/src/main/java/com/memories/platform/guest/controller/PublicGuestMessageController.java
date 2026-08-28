@@ -1,6 +1,7 @@
 package com.memories.platform.guest.controller;
 
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.guest.dto.CreateGuestMessageRequest;
 import com.memories.platform.guest.service.GuestMessageService;
 import com.memories.platform.ratelimit.service.ClientIpHashService;
@@ -32,6 +33,7 @@ public class PublicGuestMessageController {
         this.ipHashService = ipHashService;
     }
 
+    @LogActivity("Submit a guest message to a public memory")
     @PostMapping("/{slug}/messages")
     public ResponseEntity<Void> submit(
             @PathVariable String slug,

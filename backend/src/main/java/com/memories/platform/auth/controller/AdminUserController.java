@@ -3,6 +3,7 @@ package com.memories.platform.auth.controller;
 import com.memories.platform.auth.dto.AccountStatusResponse;
 import com.memories.platform.auth.service.UserAccountAdministrationService;
 import com.memories.platform.common.web.CorrelationIdFilter;
+import com.memories.platform.common.web.LogActivity;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,7 @@ public class AdminUserController {
         this.administrationService = administrationService;
     }
 
+    @LogActivity("Lock a user account")
     @PostMapping("/{userId}/lock")
     public ResponseEntity<AccountStatusResponse> lock(
             @PathVariable UUID userId,

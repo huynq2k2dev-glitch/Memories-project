@@ -5,6 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -12,6 +15,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "memory_locations")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryLocation {
 
     @Id
@@ -56,9 +61,6 @@ public class MemoryLocation {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected MemoryLocation() {
-    }
 
     public MemoryLocation(
             UUID id,
@@ -112,53 +114,5 @@ public class MemoryLocation {
         this.sortOrder = sortOrder;
         this.updatedAt = now;
         this.updatedBy = actorId;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public BigDecimal getLatitude() {
-        return latitude;
-    }
-
-    public BigDecimal getLongitude() {
-        return longitude;
-    }
-
-    public String getMapUrl() {
-        return mapUrl;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

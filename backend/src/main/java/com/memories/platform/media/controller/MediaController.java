@@ -1,5 +1,6 @@
 package com.memories.platform.media.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.media.dto.MediaAssetResponse;
 import com.memories.platform.media.service.MediaAssetService;
 import com.memories.platform.media.service.MediaUploadService;
@@ -25,11 +26,13 @@ public class MediaController {
         this.assetService = assetService;
     }
 
+    @LogActivity("Complete and verify a media upload")
     @PostMapping("/{assetId}/complete")
     public ResponseEntity<MediaAssetResponse> complete(@PathVariable UUID assetId) {
         return ResponseEntity.ok(uploadService.complete(assetId));
     }
 
+    @LogActivity("Soft-delete a media asset")
     @DeleteMapping("/{assetId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID assetId,
