@@ -6,6 +6,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -14,6 +17,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "memory_members")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryMember {
 
     @Id
@@ -59,9 +64,6 @@ public class MemoryMember {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected MemoryMember() {
-    }
 
     public MemoryMember(
             UUID id,
@@ -115,53 +117,5 @@ public class MemoryMember {
         this.avatarAssetId = avatarAssetId;
         this.updatedBy = actorId;
         this.updatedAt = now;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public String getRoleCode() {
-        return roleCode;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public UUID getAvatarAssetId() {
-        return avatarAssetId;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public JsonNode getMetadata() {
-        return metadata;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

@@ -7,12 +7,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "guest_event_responses")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GuestEventResponse {
 
     @Id
@@ -49,9 +54,6 @@ public class GuestEventResponse {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected GuestEventResponse() {
-    }
 
     public GuestEventResponse(
             UUID id,
@@ -90,45 +92,5 @@ public class GuestEventResponse {
         this.message = message;
         this.respondedAt = respondedAt;
         this.updatedAt = now;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getGuestId() {
-        return guestId;
-    }
-
-    public UUID getEventId() {
-        return eventId;
-    }
-
-    public GuestAttendanceStatus getAttendanceStatus() {
-        return attendanceStatus;
-    }
-
-    public int getPartySize() {
-        return partySize;
-    }
-
-    public String getDietaryNote() {
-        return dietaryNote;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public Instant getRespondedAt() {
-        return respondedAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

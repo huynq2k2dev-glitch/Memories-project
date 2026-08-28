@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.CreateMemoryLocationRequest;
 import com.memories.platform.memory.dto.MemoryLocationResponse;
 import com.memories.platform.memory.dto.ReorderMemoryItemsRequest;
@@ -31,11 +32,13 @@ public class MemoryLocationController {
         this.locationService = locationService;
     }
 
+    @LogActivity("List locations in a memory")
     @GetMapping
     public ResponseEntity<List<MemoryLocationResponse>> list(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(locationService.list(memoryId));
     }
 
+    @LogActivity("Create a memory location")
     @PostMapping
     public ResponseEntity<MemoryLocationResponse> create(
             @PathVariable UUID memoryId,
@@ -46,6 +49,7 @@ public class MemoryLocationController {
         );
     }
 
+    @LogActivity("Reorder memory locations")
     @PutMapping("/order")
     public ResponseEntity<List<MemoryLocationResponse>> reorder(
             @PathVariable UUID memoryId,
@@ -54,6 +58,7 @@ public class MemoryLocationController {
         return ResponseEntity.ok(locationService.reorder(memoryId, request));
     }
 
+    @LogActivity("Update a memory location")
     @PutMapping("/{locationId}")
     public ResponseEntity<MemoryLocationResponse> update(
             @PathVariable UUID memoryId,
@@ -63,6 +68,7 @@ public class MemoryLocationController {
         return ResponseEntity.ok(locationService.update(memoryId, locationId, request));
     }
 
+    @LogActivity("Delete a memory location")
     @DeleteMapping("/{locationId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID memoryId,

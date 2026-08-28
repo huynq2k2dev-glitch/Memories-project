@@ -2,6 +2,7 @@ package com.memories.platform.template.controller;
 
 import com.memories.platform.template.dto.TemplateCatalogPageResponse;
 import com.memories.platform.common.domain.MemoryType;
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.template.entity.TemplateStatus;
 import com.memories.platform.template.service.TemplateCatalogService;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ public class TemplateCatalogController {
         this.catalogService = catalogService;
     }
 
+    @LogActivity("List templates available in the public catalog")
     @GetMapping
     public ResponseEntity<TemplateCatalogPageResponse> list(
             @RequestParam(defaultValue = "0") int page,

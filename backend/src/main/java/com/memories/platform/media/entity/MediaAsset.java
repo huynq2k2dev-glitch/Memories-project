@@ -7,12 +7,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "media_assets")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MediaAsset {
 
     @Id
@@ -80,9 +85,6 @@ public class MediaAsset {
     @Column(nullable = false)
     private long version;
 
-    protected MediaAsset() {
-    }
-
     public MediaAsset(
             UUID id,
             UUID ownerId,
@@ -134,61 +136,5 @@ public class MediaAsset {
         deletedAt = now;
         updatedAt = now;
         updatedBy = actorId;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getOwnerId() {
-        return ownerId;
-    }
-
-    public MediaStorageProvider getStorageProvider() {
-        return storageProvider;
-    }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    public String getObjectKey() {
-        return objectKey;
-    }
-
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public long getFileSize() {
-        return fileSize;
-    }
-
-    public String getChecksum() {
-        return checksum;
-    }
-
-    public MediaAssetStatus getStatus() {
-        return status;
-    }
-
-    public Instant getUploadExpiresAt() {
-        return uploadExpiresAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

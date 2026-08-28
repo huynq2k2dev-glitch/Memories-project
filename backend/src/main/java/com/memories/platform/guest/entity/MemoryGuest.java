@@ -7,12 +7,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "memory_guests")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryGuest {
 
     @Id
@@ -61,9 +66,6 @@ public class MemoryGuest {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected MemoryGuest() {
-    }
 
     public MemoryGuest(
             UUID id,
@@ -131,53 +133,5 @@ public class MemoryGuest {
 
     public boolean hasAccessToken() {
         return accessTokenHash != null;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getGuestGroup() {
-        return guestGroup;
-    }
-
-    public int getMaxPartySize() {
-        return maxPartySize;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public MemoryGuestStatus getStatus() {
-        return status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

@@ -40,6 +40,7 @@ import com.memories.platform.media.exception.MediaVersionConflictException;
 import com.memories.platform.memory.exception.MemoryNotFoundException;
 import com.memories.platform.memory.exception.MemoryLifecycleConflictException;
 import com.memories.platform.memory.exception.InvalidMemoryAccessPolicyException;
+import com.memories.platform.memory.exception.InvalidMemoryQueryException;
 import com.memories.platform.memory.exception.MemoryMediaNotFoundException;
 import com.memories.platform.memory.exception.MemoryMessageSettingsConflictException;
 import com.memories.platform.memory.exception.MemoryPasswordRequiredException;
@@ -305,6 +306,19 @@ public class ApiExceptionHandler {
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 "MEMORY_TEMPLATE_TYPE_MISMATCH",
                 "The memory type is not compatible with the selected template.",
+                request
+        );
+    }
+
+    @ExceptionHandler(InvalidMemoryQueryException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidMemoryQuery(
+            InvalidMemoryQueryException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.BAD_REQUEST,
+                "MEMORY_QUERY_INVALID",
+                "Page must be non-negative and size must be between 1 and 50.",
                 request
         );
     }

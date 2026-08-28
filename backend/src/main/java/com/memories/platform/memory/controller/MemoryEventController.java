@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.memory.dto.CreateMemoryEventRequest;
 import com.memories.platform.memory.dto.MemoryEventResponse;
 import com.memories.platform.memory.dto.ReorderMemoryItemsRequest;
@@ -31,11 +32,13 @@ public class MemoryEventController {
         this.eventService = eventService;
     }
 
+    @LogActivity("List events in a memory")
     @GetMapping
     public ResponseEntity<List<MemoryEventResponse>> list(@PathVariable UUID memoryId) {
         return ResponseEntity.ok(eventService.list(memoryId));
     }
 
+    @LogActivity("Create a memory event")
     @PostMapping
     public ResponseEntity<MemoryEventResponse> create(
             @PathVariable UUID memoryId,
@@ -46,6 +49,7 @@ public class MemoryEventController {
         );
     }
 
+    @LogActivity("Reorder memory events")
     @PutMapping("/order")
     public ResponseEntity<List<MemoryEventResponse>> reorder(
             @PathVariable UUID memoryId,
@@ -54,6 +58,7 @@ public class MemoryEventController {
         return ResponseEntity.ok(eventService.reorder(memoryId, request));
     }
 
+    @LogActivity("Update a memory event")
     @PutMapping("/{eventId}")
     public ResponseEntity<MemoryEventResponse> update(
             @PathVariable UUID memoryId,
@@ -63,6 +68,7 @@ public class MemoryEventController {
         return ResponseEntity.ok(eventService.update(memoryId, eventId, request));
     }
 
+    @LogActivity("Delete a memory event")
     @DeleteMapping("/{eventId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID memoryId,

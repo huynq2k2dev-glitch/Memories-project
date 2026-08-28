@@ -8,6 +8,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,6 +18,8 @@ import java.time.Instant;
 @Entity
 @Table(name = "rate_limit_buckets")
 @IdClass(RateLimitBucketId.class)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RateLimitBucket {
 
     @Id
@@ -34,9 +39,6 @@ public class RateLimitBucket {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    protected RateLimitBucket() {
-    }
 
     public boolean tryAcquire(Instant now, int maximumRequests, Duration window) {
         if (!windowStartedAt.plus(window).isAfter(now)) {

@@ -1,5 +1,6 @@
 package com.memories.platform.memory.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.media.dto.MediaDeliveryResponse;
 import com.memories.platform.memory.dto.MemoryRenderResponse;
 import com.memories.platform.memory.dto.UnlockMemoryRequest;
@@ -38,6 +39,7 @@ public class PublicMemoryController {
         this.passwordAccessService = passwordAccessService;
     }
 
+    @LogActivity("Render a publicly accessible memory")
     @GetMapping("/memories/{slug}")
     public ResponseEntity<MemoryRenderResponse> memory(
             @PathVariable String slug,
@@ -48,6 +50,7 @@ public class PublicMemoryController {
                 .body(renderService.publicMemory(slug, cookies(request)));
     }
 
+    @LogActivity("Unlock a password-protected memory")
     @PostMapping("/memories/{slug}/unlock")
     public ResponseEntity<Void> unlock(
             @PathVariable String slug,
@@ -60,6 +63,7 @@ public class PublicMemoryController {
                 .build();
     }
 
+    @LogActivity("Deliver media for a publicly accessible memory")
     @GetMapping("/media/{assetId}")
     public ResponseEntity<Void> media(
             @PathVariable UUID assetId,

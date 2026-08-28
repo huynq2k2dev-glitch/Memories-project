@@ -6,12 +6,17 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "guest_messages")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GuestMessage {
 
     @Id
@@ -48,9 +53,6 @@ public class GuestMessage {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected GuestMessage() {
-    }
-
     public GuestMessage(
             UUID id,
             UUID memoryId,
@@ -85,41 +87,5 @@ public class GuestMessage {
         this.moderatedBy = actorId;
         this.moderatedAt = now;
         this.updatedAt = now;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public String getGuestName() {
-        return guestName;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public GuestMessageStatus getStatus() {
-        return status;
-    }
-
-    public UUID getModeratedBy() {
-        return moderatedBy;
-    }
-
-    public Instant getModeratedAt() {
-        return moderatedAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 }

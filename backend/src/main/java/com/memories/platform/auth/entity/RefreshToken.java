@@ -8,12 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "refresh_tokens")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
     @Id
@@ -45,9 +50,6 @@ public class RefreshToken {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected RefreshToken() {
-    }
-
     public RefreshToken(
             UUID id,
             UserAccount user,
@@ -64,18 +66,6 @@ public class RefreshToken {
         this.tokenHash = tokenHash;
         this.expiresAt = expiresAt;
         this.createdAt = createdAt;
-    }
-
-    public UserAccount getUser() {
-        return user;
-    }
-
-    public UUID getFamilyId() {
-        return familyId;
-    }
-
-    public Instant getExpiresAt() {
-        return expiresAt;
     }
 
     public boolean isExpiredAt(Instant instant) {

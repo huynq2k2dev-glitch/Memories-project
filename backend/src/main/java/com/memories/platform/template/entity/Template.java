@@ -10,6 +10,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -18,6 +21,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "templates")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Template {
 
     @Id
@@ -57,9 +62,6 @@ public class Template {
     @OrderBy("versionNo DESC")
     private List<TemplateVersion> versions = new ArrayList<>();
 
-    protected Template() {
-    }
-
     public Template(
             UUID id,
             String code,
@@ -90,46 +92,6 @@ public class Template {
         this.description = description;
         this.status = status;
         this.updatedAt = now;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public MemoryType getMemoryType() {
-        return memoryType;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public UUID getThumbnailAssetId() {
-        return thumbnailAssetId;
-    }
-
-    public TemplateStatus getStatus() {
-        return status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 
     public List<TemplateVersion> getVersions() {

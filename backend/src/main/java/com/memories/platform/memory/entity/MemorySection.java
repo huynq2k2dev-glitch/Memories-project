@@ -6,6 +6,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -14,6 +17,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "memory_sections")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemorySection {
 
     @Id
@@ -59,9 +64,6 @@ public class MemorySection {
     @Version
     @Column(nullable = false)
     private long version;
-
-    protected MemorySection() {
-    }
 
     public MemorySection(
             UUID id,
@@ -118,53 +120,5 @@ public class MemorySection {
     public boolean hasContent() {
         return visible
                 && ((contentText != null && !contentText.isBlank()) || !config.isEmpty());
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getMemoryId() {
-        return memoryId;
-    }
-
-    public String getSectionKey() {
-        return sectionKey;
-    }
-
-    public String getSectionType() {
-        return sectionType;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContentText() {
-        return contentText;
-    }
-
-    public JsonNode getConfig() {
-        return config;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public boolean isVisible() {
-        return visible;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public long getVersion() {
-        return version;
     }
 }

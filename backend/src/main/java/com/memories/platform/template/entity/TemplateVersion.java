@@ -10,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -18,6 +21,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "template_versions")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TemplateVersion {
 
     @Id
@@ -67,9 +72,6 @@ public class TemplateVersion {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    protected TemplateVersion() {
-    }
 
     public TemplateVersion(
             UUID id,
@@ -136,61 +138,5 @@ public class TemplateVersion {
 
     public boolean isPublished() {
         return status == TemplateVersionStatus.PUBLISHED;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public Template getTemplate() {
-        return template;
-    }
-
-    public int getVersionNo() {
-        return versionNo;
-    }
-
-    public String getComponentKey() {
-        return componentKey;
-    }
-
-    public String getRendererVersion() {
-        return rendererVersion;
-    }
-
-    public boolean isCoverRequired() {
-        return coverRequired;
-    }
-
-    public JsonNode getConfigSchema() {
-        return configSchema;
-    }
-
-    public JsonNode getDefaultConfig() {
-        return defaultConfig;
-    }
-
-    public JsonNode getRequiredSections() {
-        return requiredSections;
-    }
-
-    public JsonNode getSectionContracts() {
-        return sectionContracts;
-    }
-
-    public TemplateVersionStatus getStatus() {
-        return status;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 }

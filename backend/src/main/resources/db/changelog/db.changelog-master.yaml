@@ -37,3 +37,5 @@ databaseChangeLog:
       file: db/changelog/changes/019-rate-limit-buckets.sql
   - include:
       file: db/changelog/changes/020-foundation-schema-alignment.sql
+  - include:
+      file: db/changelog/changes/021-dev-demo-template.sql

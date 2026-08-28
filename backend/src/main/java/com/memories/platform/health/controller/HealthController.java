@@ -1,5 +1,6 @@
 package com.memories.platform.health.controller;
 
+import com.memories.platform.common.web.LogActivity;
 import com.memories.platform.health.dto.HealthResponse;
 import com.memories.platform.health.service.HealthService;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public class HealthController {
         this.healthService = healthService;
     }
 
+    @LogActivity("Get the platform health status")
     @GetMapping
     public ResponseEntity<HealthResponse> getHealth() {
         return ResponseEntity.ok(healthService.getHealth());
