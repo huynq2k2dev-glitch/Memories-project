@@ -8,6 +8,7 @@ public record TemplateRenderContractResponse(
         String componentKey,
         String rendererVersion,
         boolean coverRequired,
-        Set<String> requiredSectionTypes
+        Set<String> requiredSectionTypes,
+        HtmlBook book
 ) {
 }

@@ -24,7 +24,8 @@ public record UpsertTemplateVersionRequest(
                 @Size(max = 50)
                 @Pattern(regexp = "[A-Z][A-Z0-9_]*")
                 String
-        > requiredSections
+        > requiredSections,
+        HtmlBook book
 ) {
     public UpsertTemplateVersionRequest {
         componentKey = componentKey == null ? null : componentKey.trim();

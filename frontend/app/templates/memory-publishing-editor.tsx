@@ -27,6 +27,7 @@ type PublishResult = {
 };
 
 type Problem = {
+  code?: string;
   detail?: string;
 };
 
@@ -63,6 +64,7 @@ export default function MemoryPublishingEditor({
   }
 
   async function publish() {
+    if (!window.confirm("Xuất bản với quyền riêng tư hiện tại? Sau khi xuất bản, bạn sẽ không thể chỉnh sửa nội dung bản nháp.")) return;
     setBusy(true);
     setError("");
     try {
@@ -98,22 +100,22 @@ export default function MemoryPublishingEditor({
     : false;
   return (
     <section className="publishing-editor">
-      <h3>Preview và publish</h3>
+      <h3>Trang của bạn đã sẵn sàng chưa?</h3>
       <p className="form-note">
-        Preview và trang public dùng cùng payload cùng renderer đã đăng ký.
+        Lưu các phần vừa chỉnh sửa, sau đó xem trước. Khi xuất bản, nội dung sẽ được khóa chỉnh sửa.
       </p>
       <div className="publishing-actions">
         <button type="button" disabled={busy} onClick={() => void loadPreview()}>
-          {busy ? "Đang xử lý…" : "Tải preview"}
+          {busy ? "Đang xử lý…" : "Xem trước nội dung đã lưu"}
         </button>
         {memory.status === "DRAFT" ? (
           canPublish ? (
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || !preview || !rendererSupported}
               onClick={() => void publish()}
             >
-              Publish {memory.visibility}
+              {memory.visibility === "PRIVATE" ? "Hoàn tất và giữ riêng tư" : "Xuất bản trang"}
             </button>
           ) : null
         ) : memory.status === "PUBLISHED" && memory.visibility !== "PRIVATE" ? (
@@ -126,11 +128,11 @@ export default function MemoryPublishingEditor({
           </a>
         ) : memory.status === "PUBLISHED" ? (
           <span className="form-note">
-            PRIVATE chỉ xem được qua preview của người có quyền.
+            Trang đang riêng tư. Người có quyền có thể xem bằng nút xem trước.
           </span>
         ) : (
           <span className="form-note">
-            Memory đã archive và không còn được chia sẻ public.
+            Kỷ niệm đã lưu trữ và không còn được chia sẻ công khai.
           </span>
         )}
       </div>
@@ -141,8 +143,7 @@ export default function MemoryPublishingEditor({
       ) : null}
       {preview && !rendererSupported ? (
         <p className="form-note form-error" role="alert">
-          Renderer {preview.componentKey}@{preview.rendererVersion} không có trong
-          frontend build.
+          Mẫu này chưa thể hiển thị. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.
         </p>
       ) : null}
       {preview && rendererSupported ? (
@@ -161,9 +162,18 @@ export default function MemoryPublishingEditor({
 async function problemDetail(response: Response) {
   try {
     const problem = (await response.json()) as Problem;
-    return problem.detail ?? "Không thể xử lý yêu cầu publish.";
+    if (problem.code === "MEMORY_REQUIRED_SECTIONS_INCOMPLETE") {
+      return "Mẫu còn thiếu nội dung bắt buộc. Mở phần Hoàn thiện câu chuyện, thêm nội dung và bật hiển thị cho các phần cần thiết.";
+    }
+    if (problem.code === "MEMORY_COVER_REQUIRED") {
+      return "Mẫu này cần ảnh bìa. Mở phần Ảnh và khoảnh khắc, chọn một ảnh rồi bấm Dùng làm ảnh bìa.";
+    }
+    if (problem.code === "MEMORY_VERSION_CONFLICT") {
+      return "Kỷ niệm vừa được cập nhật. Hãy làm mới thông tin và xem trước lại trước khi xuất bản.";
+    }
+    return problem.detail ?? "Chưa thể xuất bản trang. Vui lòng thử lại.";
   } catch {
-    return "Không thể xử lý yêu cầu publish.";
+    return "Chưa thể xuất bản trang. Vui lòng thử lại.";
   }
 }
 

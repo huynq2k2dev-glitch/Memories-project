@@ -178,8 +178,7 @@ export default function MemoryShareLinkEditor({
         <div>
           <h3>Link chia sẻ</h3>
           <p className="form-note">
-            Mỗi lần mở link mới tính một lượt. Tải lại memory hoặc tải ảnh không
-            tăng lượt. Token chỉ hiển thị ngay sau khi phát hành.
+            Tạo đường dẫn có thời hạn hoặc giới hạn lượt mở. Hãy sao chép ngay sau khi tạo vì đường dẫn đầy đủ chỉ hiển thị một lần.
           </p>
         </div>
         <button type="button" disabled={busy} onClick={() => void load()}>
@@ -189,8 +188,7 @@ export default function MemoryShareLinkEditor({
 
       {!shareable ? (
         <p className="form-note">
-          Chỉ memory PRIVATE hoặc UNLISTED được phát hành link kiểm soát. Các
-          link cũ vẫn hiển thị để có thể thu hồi.
+          Đường dẫn có kiểm soát dành cho trang riêng tư hoặc trang chỉ dành cho người có đường dẫn. Bạn vẫn có thể thu hồi các đường dẫn cũ.
         </p>
       ) : null}
 
@@ -208,21 +206,21 @@ export default function MemoryShareLinkEditor({
             }}
             disabled={busy || !shareable}
           >
-            <option value="VIEW">VIEW — chỉ xem memory</option>
-            <option value="RSVP">RSVP — xem và phản hồi cho guest</option>
+            <option value="VIEW">Chỉ xem kỷ niệm</option>
+            <option value="RSVP">Xem và xác nhận tham dự</option>
           </select>
         </label>
 
         {permission === "RSVP" ? (
           <label>
-            Guest
+            Khách mời
             <select
               value={guestId}
               onChange={(event) => setGuestId(event.target.value)}
               disabled={busy || !shareable}
               required
             >
-              <option value="">Chọn guest active</option>
+              <option value="">Chọn khách mời đang hoạt động</option>
               {guests.map((guest) => (
                 <option key={guest.id} value={guest.id}>
                   {guest.fullName}
@@ -261,7 +259,7 @@ export default function MemoryShareLinkEditor({
 
       {issuedUrl ? (
         <div className="issued-share-link" aria-live="polite">
-          <p>Hãy sao chép ngay. Hệ thống không thể đọc lại token này.</p>
+          <p>Sao chép và lưu đường dẫn trước khi rời trang.</p>
           <input value={issuedUrl} readOnly aria-label="Link chia sẻ mới" />
           <button type="button" onClick={() => void copyIssuedUrl()}>
             {copied ? "Đã sao chép" : "Sao chép link"}

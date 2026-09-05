@@ -238,7 +238,8 @@ public class MemoryRenderService {
                         image.isCoverCandidate(),
                         media(image.getMediaAssetId(), assets)
                 )).toList(),
-                guestMessageQueryService.approved(memory.getId())
+                guestMessageQueryService.approved(memory.getId()),
+                contract.book()
         );
     }
 

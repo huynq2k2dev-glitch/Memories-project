@@ -20,6 +20,7 @@ public record AdminTemplateVersionResponse(
         TemplateVersionStatus status,
         Instant publishedAt,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        HtmlBook book
 ) {
 }

@@ -115,7 +115,8 @@ public class TemplateCatalogService {
                 version.isCoverRequired(),
                 version.getDefaultConfig().deepCopy(),
                 allowedSectionTypes(version.getSectionContracts()),
-                requiredSections(version.getRequiredSections())
+                requiredSections(version.getRequiredSections()),
+                version.getBook()
         );
     }
 

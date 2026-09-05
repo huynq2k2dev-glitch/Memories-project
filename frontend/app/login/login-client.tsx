@@ -1,28 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useEffect, useState } from "react";
 
-import {
-  logoutAllSessions,
-  logoutCurrentSession,
-  storeAccessToken,
-} from "@/lib/auth-session";
+import { useAuth } from "@/components/auth-provider";
+import { safeInternalPath } from "@/lib/navigation";
 
 type LoginState =
   | "idle"
   | "submitting"
-  | "signed-in"
   | "invalid"
   | "unverified"
   | "locked"
+  | "limited"
   | "unavailable";
 
-export default function LoginClient() {
+export default function LoginClient({
+  returnTo,
+  verified,
+}: {
+  returnTo?: string;
+  verified: boolean;
+}) {
+  const { signIn, status } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [state, setState] = useState<LoginState>("idle");
-  const [loggingOut, setLoggingOut] = useState(false);
+  const destination = safeInternalPath(returnTo, "/memories");
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace(destination);
+    }
+  }, [destination, router, status]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,9 +47,9 @@ export default function LoginClient() {
       });
       if (response.ok) {
         const payload = (await response.json()) as { accessToken: string };
-        storeAccessToken(payload.accessToken);
+        await signIn(payload.accessToken);
         setPassword("");
-        setState("signed-in");
+        router.replace(destination);
         return;
       }
 
@@ -49,92 +61,55 @@ export default function LoginClient() {
   }
 
   const message = loginMessage(state);
-
-  async function logout(allDevices: boolean) {
-    setLoggingOut(true);
-    try {
-      if (allDevices) {
-        await logoutAllSessions();
-      } else {
-        await logoutCurrentSession();
-      }
-      setState("idle");
-    } finally {
-      setLoggingOut(false);
-    }
-  }
-
   return (
-    <main>
-      <section className="login-card" aria-labelledby="login-title">
+    <main className="page-shell centered-page">
+      <section className="auth-card" aria-labelledby="login-title">
         <p className="eyebrow">Tài khoản</p>
         <h1 id="login-title">Đăng nhập</h1>
         <p className="summary">Tiếp tục tạo và lưu giữ những kỷ niệm của bạn.</p>
-
-        {state === "signed-in" ? (
-          <div className="auth-result" aria-live="polite">
-            <p>Đăng nhập thành công.</p>
-            <Link className="primary-link" href="/">
-              Về trang chính
-            </Link>
-            <Link className="secondary-link" href="/admin/templates">
-              Quản trị template
-            </Link>
-            <Link className="secondary-link" href="/templates">
-              Duyệt template
-            </Link>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={loggingOut}
-              onClick={() => void logout(false)}
-            >
-              Đăng xuất phiên này
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={loggingOut}
-              onClick={() => void logout(true)}
-            >
-              Đăng xuất mọi thiết bị
-            </button>
-          </div>
-        ) : (
-          <form className="auth-form" onSubmit={submit}>
-            <label htmlFor="login-email">Email</label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-
-            <label htmlFor="login-password">Mật khẩu</label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              maxLength={72}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-
-            <button type="submit" disabled={state === "submitting"}>
-              {state === "submitting" ? "Đang đăng nhập…" : "Đăng nhập"}
-            </button>
-            {message ? (
-              <p className="form-note form-error" role="alert">
-                {message}
-              </p>
-            ) : null}
-          </form>
-        )}
+        {verified ? (
+          <p className="success-note" role="status">
+            Email đã được xác thực. Bạn có thể đăng nhập ngay.
+          </p>
+        ) : null}
+        <form className="auth-form" onSubmit={submit}>
+          <label htmlFor="login-email">Email</label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+          <label htmlFor="login-password">Mật khẩu</label>
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            minLength={12}
+            maxLength={72}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+          <button
+            type="submit"
+            disabled={state === "submitting" || status === "loading"}
+          >
+            {state === "submitting" ? "Đang đăng nhập…" : "Đăng nhập"}
+          </button>
+          {message ? (
+            <p className="form-note form-error" role="alert">
+              {message}
+            </p>
+          ) : null}
+        </form>
+        <p className="auth-switch">
+          Chưa có tài khoản? <Link href="/register">Đăng ký</Link>
+        </p>
       </section>
     </main>
   );
@@ -148,6 +123,8 @@ function loginErrorState(code: string | undefined): LoginState {
       return "unverified";
     case "ACCOUNT_LOCKED":
       return "locked";
+    case "LOGIN_RATE_LIMITED":
+      return "limited";
     default:
       return "unavailable";
   }
@@ -161,6 +138,8 @@ function loginMessage(state: LoginState) {
       return "Tài khoản chưa xác thực email. Vui lòng kiểm tra hộp thư của bạn.";
     case "locked":
       return "Tài khoản đang tạm khóa. Vui lòng thử lại sau.";
+    case "limited":
+      return "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ rồi thử lại.";
     case "unavailable":
       return "Chưa thể đăng nhập. Vui lòng thử lại sau.";
     default:

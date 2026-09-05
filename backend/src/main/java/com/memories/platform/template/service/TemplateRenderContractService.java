@@ -45,6 +45,7 @@ public class TemplateRenderContractService {
     }
 
     private TemplateRenderContractResponse toResponse(TemplateVersion version) {
+        HtmlBookValidator.validate(version.getComponentKey(), version.getBook());
         Set<String> requiredSectionTypes = new HashSet<>();
         version.getRequiredSections().forEach(value -> requiredSectionTypes.add(value.textValue()));
         return new TemplateRenderContractResponse(
@@ -52,7 +53,8 @@ public class TemplateRenderContractService {
                 version.getComponentKey(),
                 version.getRendererVersion(),
                 version.isCoverRequired(),
-                Set.copyOf(requiredSectionTypes)
+                Set.copyOf(requiredSectionTypes),
+                version.getBook()
         );
     }
 }

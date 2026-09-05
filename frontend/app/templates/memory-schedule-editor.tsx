@@ -150,8 +150,7 @@ export default function MemoryScheduleEditor({ memoryId }: { memoryId: string })
         <div>
           <h3>Địa điểm và sự kiện</h3>
           <p className="form-note">
-            Instant được nhập bằng ISO-8601 có offset; timezone chỉ dùng để hiển thị
-            lịch địa phương.
+            Thêm địa chỉ và chọn ngày giờ bằng lịch. Giờ nhập theo múi giờ trên thiết bị của bạn.
           </p>
         </div>
         <button type="button" disabled={loading || busy} onClick={() => void load()}>
@@ -614,8 +613,8 @@ function EventCard({
   const [eventType, setEventType] = useState(event.eventType);
   const [title, setTitle] = useState(event.title);
   const [description, setDescription] = useState(event.description ?? "");
-  const [startAt, setStartAt] = useState(event.startAt);
-  const [endAt, setEndAt] = useState(event.endAt ?? "");
+  const [startAt, setStartAt] = useState(localTimeInput(event.startAt));
+  const [endAt, setEndAt] = useState(event.endAt ? localTimeInput(event.endAt) : "");
   const [timezone, setTimezone] = useState(event.timezone);
   const [rsvpEnabled, setRsvpEnabled] = useState(event.rsvpEnabled);
   const [busy, setBusy] = useState(false);
@@ -737,15 +736,6 @@ type EventFieldProps = {
 function EventFields(props: EventFieldProps) {
   return (
     <>
-      <label htmlFor={`${props.prefix}-type`}>Event type</label>
-      <input
-        id={`${props.prefix}-type`}
-        value={props.eventType}
-        onChange={(event) => props.setEventType(event.target.value.toUpperCase())}
-        pattern="[A-Z][A-Z0-9_]{0,49}"
-        maxLength={50}
-        required
-      />
       <label htmlFor={`${props.prefix}-title`}>Tên sự kiện</label>
       <input
         id={`${props.prefix}-title`}
@@ -774,22 +764,25 @@ function EventFields(props: EventFieldProps) {
         onChange={(event) => props.setDescription(event.target.value)}
         rows={4}
       />
-      <label htmlFor={`${props.prefix}-start`}>Bắt đầu (ISO-8601 Instant)</label>
+      <label htmlFor={`${props.prefix}-start`}>Ngày giờ bắt đầu (giờ trên thiết bị)</label>
       <input
         id={`${props.prefix}-start`}
+        type="datetime-local"
+        step="1"
         value={props.startAt}
         onChange={(event) => props.setStartAt(event.target.value)}
-        placeholder="2026-08-22T10:00:00+07:00"
         required
       />
-      <label htmlFor={`${props.prefix}-end`}>Kết thúc (ISO-8601 Instant)</label>
+      <label htmlFor={`${props.prefix}-end`}>Ngày giờ kết thúc (không bắt buộc)</label>
       <input
         id={`${props.prefix}-end`}
+        type="datetime-local"
+        step="1"
         value={props.endAt}
         onChange={(event) => props.setEndAt(event.target.value)}
-        placeholder="2026-08-22T12:00:00+07:00"
       />
-      <label htmlFor={`${props.prefix}-timezone`}>IANA timezone hiển thị</label>
+      <details className="creator-extra"><summary>Múi giờ hiển thị cho người xem</summary>
+      <label htmlFor={`${props.prefix}-timezone`}>Múi giờ (ví dụ Asia/Ho_Chi_Minh)</label>
       <input
         id={`${props.prefix}-timezone`}
         value={props.timezone}
@@ -797,6 +790,7 @@ function EventFields(props: EventFieldProps) {
         maxLength={50}
         placeholder="Asia/Ho_Chi_Minh"
       />
+      </details>
       <label className="checkbox-label" htmlFor={`${props.prefix}-rsvp`}>
         <input
           id={`${props.prefix}-rsvp`}
@@ -804,7 +798,7 @@ function EventFields(props: EventFieldProps) {
           checked={props.rsvpEnabled}
           onChange={(event) => props.setRsvpEnabled(event.target.checked)}
         />
-        Cho phép RSVP
+        Cho phép khách xác nhận tham dự
       </label>
     </>
   );
@@ -925,14 +919,16 @@ function parseCoordinates(latitude: string, longitude: string) {
 }
 
 function parseInstant(value: string) {
-  if (!/(?:Z|[+-]\d{2}:\d{2})$/i.test(value.trim())) {
-    throw new Error("Thời gian phải có Z hoặc UTC offset rõ ràng.");
-  }
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    throw new Error("Thời gian ISO-8601 không hợp lệ.");
+    throw new Error("Vui lòng chọn ngày giờ hợp lệ.");
   }
   return date.toISOString();
+}
+
+function localTimeInput(value: string) {
+  const date = new Date(value);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
 }
 
 function formatEventTime(value: string, timezone: string) {

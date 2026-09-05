@@ -28,6 +28,7 @@ type MemoryImage = {
 type MemorySection = {
   id: string;
   sectionKey: string;
+  title: string | null;
 };
 
 type MemoryMember = {
@@ -234,10 +235,9 @@ export default function MemoryMediaEditor({
     <section className="memory-media-editor" aria-busy={loading || busy}>
       <header>
         <div>
-          <h3>Ảnh memory</h3>
+          <h3>Album ảnh của bạn</h3>
           <p className="form-note">
-            JPEG, PNG, WebP hoặc AVIF; tối đa 10 MiB. File được upload thẳng lên
-            object storage và chỉ gắn sau khi backend xác minh.
+            Chọn ảnh JPEG, PNG, WebP hoặc AVIF, tối đa 10 MiB mỗi ảnh. Bạn có thể thêm chú thích và sắp xếp sau.
           </p>
         </div>
         <div className="content-item-actions">
@@ -246,7 +246,7 @@ export default function MemoryMediaEditor({
           </button>
           {coverAssetId ? (
             <button type="button" disabled={busy} onClick={() => void clearCover()}>
-              Bỏ cover
+              Bỏ ảnh bìa
             </button>
           ) : null}
         </div>
@@ -259,7 +259,7 @@ export default function MemoryMediaEditor({
       ) : null}
 
       <form className="content-item-form" onSubmit={upload}>
-        <label htmlFor="memory-image-file">File ảnh</label>
+        <label htmlFor="memory-image-file">Chọn ảnh từ thiết bị</label>
         <input
           id="memory-image-file"
           type="file"
@@ -267,20 +267,21 @@ export default function MemoryMediaEditor({
           onChange={(event) => setFile(event.target.files?.[0] ?? null)}
           required
         />
-        <label htmlFor="new-image-section">Section</label>
+        <details className="creator-extra"><summary>Vị trí ảnh và mô tả hỗ trợ đọc</summary>
+        <label htmlFor="new-image-section">Đặt ảnh vào phần</label>
         <select
           id="new-image-section"
           value={sectionId}
           onChange={(event) => setSectionId(event.target.value)}
         >
-          <option value="">Không gắn section</option>
-          {sections.map((section) => (
+          <option value="">Album chung</option>
+          {sections.map((section, index) => (
             <option key={section.id} value={section.id}>
-              {section.sectionKey}
+              {section.title || `Phần nội dung ${index + 1}`}
             </option>
           ))}
         </select>
-        <label htmlFor="new-image-caption">Caption</label>
+        <label htmlFor="new-image-caption">Chú thích ảnh</label>
         <textarea
           id="new-image-caption"
           value={caption}
@@ -288,21 +289,22 @@ export default function MemoryMediaEditor({
           maxLength={1000}
           rows={3}
         />
-        <label htmlFor="new-image-alt">Alt text</label>
+        <label htmlFor="new-image-alt">Mô tả ảnh cho người dùng trình đọc màn hình</label>
         <input
           id="new-image-alt"
           value={altText}
           onChange={(event) => setAltText(event.target.value)}
           maxLength={500}
         />
+        </details>
         <button type="submit" disabled={busy || loading}>
-          {busy ? "Đang upload và xác minh…" : "Upload và gắn ảnh"}
+          {busy ? "Đang tải ảnh lên…" : "Thêm ảnh vào kỷ niệm"}
         </button>
       </form>
 
       {!loading ? (
         <div className="media-image-list">
-          {images.length === 0 ? <p>Memory chưa có ảnh.</p> : null}
+          {images.length === 0 ? <p>Album còn trống. Bắt đầu bằng một bức ảnh bạn yêu thích.</p> : null}
           {images.map((image, index) => (
             <MemoryImageCard
               key={`${image.id}-${image.version}`}
@@ -328,8 +330,8 @@ export default function MemoryMediaEditor({
 
       {!loading && members.length > 0 ? (
         <section className="avatar-assignment">
-          <h4>Avatar nhân vật</h4>
-          <p className="form-note">Chọn một asset READY đang hiển thị phía trên.</p>
+          <h4>Ảnh đại diện</h4>
+          <p className="form-note">Chọn một ảnh đã tải lên trong album.</p>
           {members.map((member) => (
             <MemberAvatarEditor
               key={`${member.id}-${member.version}`}
@@ -423,7 +425,7 @@ function MemoryImageCard({
   }
 
   async function unlink() {
-    if (!window.confirm("Bỏ liên kết ảnh khỏi memory? Object gốc sẽ được giữ lại.")) {
+    if (!window.confirm("Gỡ ảnh này khỏi kỷ niệm?")) {
       return;
     }
     setBusy(true);
@@ -447,23 +449,22 @@ function MemoryImageCard({
       <img src={image.deliveryUrl} alt={image.altText || "Ảnh memory"} />
       <form className="content-item-card" onSubmit={save}>
         <div className="content-item-heading">
-          <strong>{coverAssetId === image.assetId ? "Cover hiện tại" : "Ảnh"}</strong>
-          <span>#{image.sortOrder}</span>
+          <strong>{coverAssetId === image.assetId ? "Ảnh bìa hiện tại" : "Ảnh trong album"}</strong>
         </div>
-        <label htmlFor={`image-section-${image.id}`}>Section</label>
+        <label htmlFor={`image-section-${image.id}`}>Đặt ảnh vào phần</label>
         <select
           id={`image-section-${image.id}`}
           value={sectionId}
           onChange={(event) => setSectionId(event.target.value)}
         >
-          <option value="">Không gắn section</option>
-          {sections.map((section) => (
+          <option value="">Album chung</option>
+          {sections.map((section, index) => (
             <option key={section.id} value={section.id}>
-              {section.sectionKey}
+              {section.title || `Phần nội dung ${index + 1}`}
             </option>
           ))}
         </select>
-        <label htmlFor={`image-caption-${image.id}`}>Caption</label>
+        <label htmlFor={`image-caption-${image.id}`}>Chú thích</label>
         <textarea
           id={`image-caption-${image.id}`}
           value={caption}
@@ -471,7 +472,7 @@ function MemoryImageCard({
           maxLength={1000}
           rows={3}
         />
-        <label htmlFor={`image-alt-${image.id}`}>Alt text</label>
+        <label htmlFor={`image-alt-${image.id}`}>Mô tả hỗ trợ đọc màn hình</label>
         <input
           id={`image-alt-${image.id}`}
           value={altText}
@@ -485,7 +486,7 @@ function MemoryImageCard({
             checked={coverCandidate}
             onChange={(event) => setCoverCandidate(event.target.checked)}
           />
-          Ứng viên cover
+          Cho phép dùng làm ảnh bìa
         </label>
         <div className="content-item-actions">
           <button type="submit" disabled={busy}>Lưu</button>
@@ -500,10 +501,10 @@ function MemoryImageCard({
             disabled={busy || coverAssetId === image.assetId}
             onClick={() => void setCover()}
           >
-            Đặt cover
+            Dùng làm ảnh bìa
           </button>
           <button className="danger-button" type="button" disabled={busy} onClick={() => void unlink()}>
-            Bỏ liên kết
+            Gỡ ảnh
           </button>
         </div>
         {error ? <p className="form-note form-error">{error}</p> : null}

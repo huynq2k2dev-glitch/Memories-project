@@ -80,15 +80,19 @@ export default async function PublicMemoryPage({
         componentKey={payload.componentKey}
         rendererVersion={payload.rendererVersion}
         payload={payload}
+        slots={payload.componentKey === "html-book" ? {
+          RSVP: shareRsvp ? <ShareRsvpSection slug={slug} invitation={shareRsvp} /> : <p>Mở liên kết lời mời riêng để xác nhận tham dự.</p>,
+          GUEST_MESSAGES: <GuestMessageSection slug={slug} messages={payload.messages} canSubmit={payload.visibility !== "PRIVATE"} />,
+        } : undefined}
       />
-      {shareRsvp ? (
+      {payload.componentKey !== "html-book" && shareRsvp ? (
         <ShareRsvpSection slug={slug} invitation={shareRsvp} />
       ) : null}
-      <GuestMessageSection
+      {payload.componentKey !== "html-book" ? <GuestMessageSection
         slug={slug}
         messages={payload.messages}
         canSubmit={payload.visibility !== "PRIVATE"}
-      />
+      /> : null}
     </main>
   );
 }

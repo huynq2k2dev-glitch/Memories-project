@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
 type VerificationState = "verifying" | "verified" | "expired" | "invalid" | "unavailable";
@@ -8,6 +9,7 @@ type VerificationState = "verifying" | "verified" | "expired" | "invalid" | "una
 const pendingVerifications = new Map<string, Promise<VerificationState>>();
 
 export default function VerifyEmailClient() {
+  const router = useRouter();
   const tokenRef = useRef<string | null | undefined>(undefined);
   const [state, setState] = useState<VerificationState>("verifying");
   const [email, setEmail] = useState("");
@@ -30,12 +32,15 @@ export default function VerifyEmailClient() {
     void verifyOnce(token).then((result) => {
       if (active) {
         setState(result);
+        if (result === "verified") {
+          router.replace("/login?verified=1");
+        }
       }
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [router]);
 
   async function resend(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

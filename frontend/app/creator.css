@@ -1,0 +1,189 @@
+.creator-workspace {
+  width: 100%;
+  max-width: 58rem;
+  margin: 0 auto;
+  gap: 1rem;
+}
+
+.creator-panel {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: #fffcf7;
+  overflow: hidden;
+}
+
+.creator-panel > summary {
+  padding: 1.4rem 1.5rem;
+  cursor: pointer;
+  font: 600 1.05rem/1.5 Arial, sans-serif;
+}
+
+.creator-panel > summary small {
+  display: block;
+  margin: 0.35rem 0 0 1.1rem;
+  color: #695d54;
+  font: 400 0.9rem/1.6 Arial, sans-serif;
+}
+
+.creator-panel[open] > summary {
+  border-bottom: 1px solid var(--border);
+  background: #f5eee3;
+}
+
+.creator-panel-body {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.creator-panel-body > :is(.memory-editor, .memory-content-editor, .memory-media-editor, .publishing-editor) {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.creator-content-sections {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.creator-extra {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  font: 0.95rem/1.6 Arial, sans-serif;
+}
+
+.creator-extra > summary {
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.creator-extra > :is(input, textarea, select, label) {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.65rem;
+}
+
+.creator-workspace :is(input, textarea, select),
+.wizard-page :is(input, textarea, select) {
+  font-size: 1rem;
+}
+
+.creator-workspace button, .wizard-page button {
+  min-height: 2.75rem;
+}
+
+.creator-workspace :is(button, input, select, textarea, summary):focus-visible,
+.wizard-page :is(button, input, summary):focus-visible,
+.template-administration summary:focus-visible {
+  outline: 3px solid #876438;
+  outline-offset: 3px;
+}
+
+.wizard-heading > p:not(.eyebrow) {
+  max-width: 42rem;
+  color: #695d54;
+  font: 1rem/1.7 Arial, sans-serif;
+}
+
+.choice-card .occasion-symbol {
+  font-size: 2.25rem;
+  color: var(--accent);
+}
+
+.template-live-preview .memory-render-page h1 {
+  font-size: clamp(1.8rem, 4vw, 3.4rem);
+  line-height: 1.15;
+}
+
+.memory-render-page.occasion-personal {
+  background: #fff8ea;
+  border-radius: 0.4rem;
+  box-shadow: 0 14px 40px #76583812;
+}
+
+.memory-render-page.occasion-wedding {
+  background: linear-gradient(145deg, #fff3f3, #fffdf8);
+  border-radius: 5rem 5rem 1rem 1rem;
+}
+
+.occasion-wedding .render-hero, .occasion-funeral .render-hero {
+  text-align: center;
+}
+
+.occasion-wedding .summary, .occasion-funeral .summary {
+  margin-inline: auto;
+}
+
+.memory-render-page.occasion-funeral {
+  background: #f0f2ec;
+  border-radius: 0.25rem;
+}
+
+.occasion-funeral .render-cover {
+  max-height: 26rem;
+  object-fit: contain;
+}
+
+.memory-render-page.occasion-graduation {
+  background: #f1f5fb;
+  border-top-width: 0.65rem;
+}
+
+.occasion-graduation h1 {
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.memory-render-page.occasion-housewarming {
+  background: #fbf3e4;
+  border-radius: 2rem;
+}
+
+.memory-render-page h1 {
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.administration-header {
+  padding: 1.1rem max(1.25rem, calc((100vw - 76rem) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  background: #1e293b;
+  color: #f8fafc;
+  font-family: Arial, sans-serif;
+}
+
+.administration-header a { color: inherit; }
+.administration-header .brand { color: #fff; }
+.administration-header small { font: 0.85rem Arial, sans-serif; }
+.administration-header nav { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
+.administration-header button { padding: 0.6rem 1rem; cursor: pointer; }
+
+.template-administration {
+  --accent: #334f79;
+  --border: #d8dee8;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-family: Arial, sans-serif;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.template-administration h1 { font: 600 clamp(1.6rem, 3vw, 2.5rem)/1.2 Arial, sans-serif; letter-spacing: normal; }
+.template-administration .creator-panel { background: #fff; }
+.template-administration .creator-panel[open] > summary { background: #e9eef5; }
+.template-administration .template-list { width: 100%; }
+
+@media (max-width: 640px) {
+  .creator-panel > summary { padding: 1rem; }
+  .creator-panel-body { padding: 1rem 0.75rem; }
+  .creator-workspace .content-editor-columns { grid-template-columns: 1fr; }
+  .creator-workspace .media-image-card { grid-template-columns: 1fr; }
+  .memory-render-page.occasion-wedding { border-radius: 2rem 2rem 0.75rem 0.75rem; }
+}

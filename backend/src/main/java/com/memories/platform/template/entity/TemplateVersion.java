@@ -1,7 +1,11 @@
 package com.memories.platform.template.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.memories.platform.template.dto.HtmlBook;
+import com.memories.platform.template.exception.TemplateVersionImmutableException;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,6 +13,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,6 +22,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -59,6 +66,18 @@ public class TemplateVersion {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "section_contracts", nullable = false, columnDefinition = "jsonb")
     private JsonNode sectionContracts;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "book_config", columnDefinition = "jsonb")
+    private HtmlBook.Config bookConfig;
+
+    @Column(name = "css_content", columnDefinition = "text")
+    private String cssContent;
+
+    @ElementCollection
+    @CollectionTable(name = "template_pages", joinColumns = @JoinColumn(name = "template_version_id"))
+    @OrderColumn(name = "page_order")
+    private List<TemplatePage> pages = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -125,6 +144,28 @@ public class TemplateVersion {
         this.status = TemplateVersionStatus.PUBLISHED;
         this.publishedAt = now;
         this.updatedAt = now;
+    }
+
+    public HtmlBook getBook() {
+        if (bookConfig == null) {
+            return null;
+        }
+        return new HtmlBook(bookConfig, cssContent, pages.stream()
+                .map(page -> new HtmlBook.Page(page.getKey(), page.getName(), page.getType(), page.getHtml()))
+                .toList());
+    }
+
+    public void updateBook(HtmlBook book) {
+        if (!isDraft()) {
+            throw new TemplateVersionImmutableException();
+        }
+        bookConfig = book == null ? null : book.config();
+        cssContent = book == null ? null : book.css();
+        pages.clear();
+        if (book != null) {
+            book.pages().forEach(page -> pages.add(
+                    new TemplatePage(page.key(), page.name(), page.type(), page.html())));
+        }
     }
 
     public void deprecate(Instant now) {

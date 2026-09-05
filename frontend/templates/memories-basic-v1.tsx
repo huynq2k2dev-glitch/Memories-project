@@ -1,10 +1,12 @@
 /* eslint-disable @next/next/no-img-element -- Runtime media delivery URLs do not provide stable dimensions. */
 import type { TemplateRendererProps } from "./registry";
+import { occasionDesign } from "@/lib/occasion-design";
 
 export default function MemoriesBasicRenderer({
   payload,
 }: TemplateRendererProps) {
-  const accentColor = stringConfig(payload.themeConfig, "accentColor", "#9b4d54");
+  const occasion = occasionDesign(payload.memoryType);
+  const accentColor = stringConfig(payload.themeConfig, "accentColor", occasion.color);
   const subtitle =
     payload.summary ??
     stringConfig(
@@ -16,7 +18,7 @@ export default function MemoriesBasicRenderer({
 
   return (
     <article
-      className="memory-renderer memory-render-page"
+      className={`memory-renderer memory-render-page occasion-${payload.memoryType.toLowerCase()}`}
       style={{ borderColor: accentColor }}
     >
       <header className="render-hero">
@@ -28,15 +30,16 @@ export default function MemoriesBasicRenderer({
           />
         ) : null}
         <div>
-          <p className="eyebrow">{payload.memoryType}</p>
+          <p className="eyebrow"><span aria-hidden="true">{occasion.symbol} </span>{occasion.label}</p>
           <h1>{payload.title}</h1>
           <p className="summary">{subtitle}</p>
+          {payload.eventStartAt ? <time dateTime={payload.eventStartAt}>{formatEventTime(payload.eventStartAt, "Asia/Ho_Chi_Minh")}</time> : null}
         </div>
       </header>
 
       {payload.members.length ? (
         <section className="render-block">
-          <h2>Nhân vật</h2>
+          <h2>{occasion.peopleLabel}</h2>
           <div className="render-member-grid">
             {payload.members.map((member) => (
               <article className="render-card" key={member.id}>
@@ -47,7 +50,6 @@ export default function MemoriesBasicRenderer({
                     alt={member.displayName ?? member.fullName}
                   />
                 ) : null}
-                <p className="eyebrow">{member.roleCode}</p>
                 <h3>{member.displayName ?? member.fullName}</h3>
                 {member.description ? <p>{member.description}</p> : null}
               </article>
@@ -62,7 +64,6 @@ export default function MemoriesBasicRenderer({
         );
         return (
           <section className="render-block" key={section.id}>
-            <p className="eyebrow">{section.sectionType}</p>
             {section.title ? <h2>{section.title}</h2> : null}
             {section.contentText ? (
               <p className="render-copy">{section.contentText}</p>
@@ -76,11 +77,10 @@ export default function MemoriesBasicRenderer({
 
       {payload.events.length ? (
         <section className="render-block">
-          <h2>Lịch sự kiện</h2>
+          <h2>{occasion.scheduleLabel}</h2>
           <div className="render-list">
             {payload.events.map((event) => (
               <article className="render-card" key={event.id}>
-                <p className="eyebrow">{event.eventType}</p>
                 <h3>{event.title}</h3>
                 <time dateTime={event.startAt}>
                   {formatEventTime(event.startAt, event.timezone)}

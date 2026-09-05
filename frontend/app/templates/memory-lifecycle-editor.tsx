@@ -61,7 +61,7 @@ export default function MemoryLifecycleEditor({
   }
 
   async function softDelete() {
-    if (!window.confirm("Xóa memory này? Dữ liệu sẽ được giữ để phục hồi sau.")) {
+    if (!window.confirm("Xóa kỷ niệm này khỏi danh sách của bạn?")) {
       return;
     }
     setBusy(true);
@@ -88,15 +88,14 @@ export default function MemoryLifecycleEditor({
 
   return (
     <section className="lifecycle-editor">
-      <h3>Vòng đời memory</h3>
+      <h3>Quản lý kỷ niệm</h3>
       <p className="form-note">
-        Archive dừng chia sẻ public. Xóa chỉ ẩn memory và giữ nguyên dữ liệu con,
-        chưa xóa vật lý.
+        Lưu trữ để ngừng chia sẻ trang. Xóa để gỡ kỷ niệm khỏi danh sách của bạn.
       </p>
       <div className="lifecycle-actions">
         {canArchive ? (
           <button type="button" disabled={busy} onClick={() => void archive()}>
-            {busy ? "Đang xử lý…" : "Archive memory"}
+            {busy ? "Đang xử lý…" : "Lưu trữ kỷ niệm"}
           </button>
         ) : null}
         {canDelete ? (
@@ -106,7 +105,7 @@ export default function MemoryLifecycleEditor({
             disabled={busy}
             onClick={() => void softDelete()}
           >
-            {busy ? "Đang xử lý…" : "Xóa memory"}
+            {busy ? "Đang xử lý…" : "Xóa kỷ niệm"}
           </button>
         ) : null}
       </div>

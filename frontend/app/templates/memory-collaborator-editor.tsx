@@ -169,9 +169,9 @@ export default function MemoryCollaboratorEditor({
             setPermission(event.target.value as CollaboratorPermission)
           }
         >
-          <option value="VIEW">VIEW</option>
-          <option value="EDIT">EDIT</option>
-          <option value="ADMIN">ADMIN</option>
+          <option value="VIEW">Chỉ xem</option>
+          <option value="EDIT">Biên soạn nội dung</option>
+          <option value="ADMIN">Quản lý kỷ niệm này</option>
         </select>
         <button type="submit" disabled={busy}>
           {busy ? "Đang xử lý…" : "Thêm cộng tác viên"}
@@ -191,10 +191,10 @@ export default function MemoryCollaboratorEditor({
         {collaborators.map((collaborator) => (
           <article className="collaborator-card" key={collaborator.id}>
             <div>
-              <strong>{collaborator.displayName ?? collaborator.userId}</strong>
+              <strong>{collaborator.displayName ?? "Người cùng cộng tác"}</strong>
               <span>
-                {collaborator.status}
-                {!collaborator.accountActive ? " · tài khoản không active" : ""}
+                {collaborator.status === "ACTIVE" ? "Đang có quyền truy cập" : "Đã thu hồi quyền"}
+                {!collaborator.accountActive ? " · tài khoản chưa hoạt động" : ""}
               </span>
               {collaborator.revokedAt ? (
                 <span>Thu hồi lúc {formatInstant(collaborator.revokedAt)}</span>
@@ -213,9 +213,9 @@ export default function MemoryCollaboratorEditor({
                     )
                   }
                 >
-                  <option value="VIEW">VIEW</option>
-                  <option value="EDIT">EDIT</option>
-                  <option value="ADMIN">ADMIN</option>
+                  <option value="VIEW">Chỉ xem</option>
+                  <option value="EDIT">Biên soạn nội dung</option>
+                  <option value="ADMIN">Quản lý kỷ niệm này</option>
                 </select>
                 <button
                   className="danger-button"
@@ -227,7 +227,7 @@ export default function MemoryCollaboratorEditor({
                 </button>
               </div>
             ) : (
-              <span className="status-badge">REVOKED</span>
+              <span className="status-badge">Đã thu hồi</span>
             )}
           </article>
         ))}

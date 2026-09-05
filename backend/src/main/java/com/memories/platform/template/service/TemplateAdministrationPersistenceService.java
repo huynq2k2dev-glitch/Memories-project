@@ -131,6 +131,7 @@ public class TemplateAdministrationPersistenceService {
             UUID templateId,
             UpsertTemplateVersionRequest request
     ) {
+        HtmlBookValidator.validate(request.componentKey(), request.book());
         contractValidator.validateDraft(
                 request.componentKey(),
                 request.rendererVersion(),
@@ -156,6 +157,7 @@ public class TemplateAdministrationPersistenceService {
                 request.sectionContracts().deepCopy(),
                 now
         );
+        version.updateBook(request.book());
         versionRepository.save(version);
         return toResponse(version);
     }
@@ -166,6 +168,7 @@ public class TemplateAdministrationPersistenceService {
             UUID versionId,
             UpsertTemplateVersionRequest request
     ) {
+        HtmlBookValidator.validate(request.componentKey(), request.book());
         contractValidator.validateDraft(
                 request.componentKey(),
                 request.rendererVersion(),
@@ -188,6 +191,7 @@ public class TemplateAdministrationPersistenceService {
                 request.sectionContracts().deepCopy(),
                 clock.instant()
         );
+        version.updateBook(request.book());
         return toResponse(version);
     }
 
@@ -208,6 +212,7 @@ public class TemplateAdministrationPersistenceService {
                 version.getSectionContracts(),
                 requiredSections(version)
         );
+        HtmlBookValidator.validate(version.getComponentKey(), version.getBook());
         contractValidator.validateForPublish(version.getConfigSchema(), version.getDefaultConfig());
         contractValidator.validateSectionContractsForPublish(version.getSectionContracts());
         version.publish(clock.instant());
@@ -268,7 +273,8 @@ public class TemplateAdministrationPersistenceService {
                 version.getStatus(),
                 version.getPublishedAt(),
                 version.getCreatedAt(),
-                version.getUpdatedAt()
+                version.getUpdatedAt(),
+                version.getBook()
         );
     }
 

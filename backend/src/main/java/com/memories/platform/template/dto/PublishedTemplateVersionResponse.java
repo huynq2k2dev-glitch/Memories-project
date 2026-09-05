@@ -13,6 +13,7 @@ public record PublishedTemplateVersionResponse(
         boolean coverRequired,
         JsonNode defaultConfig,
         List<String> allowedSectionTypes,
-        List<String> requiredSections
+        List<String> requiredSections,
+        HtmlBook book
 ) {
 }

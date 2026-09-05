@@ -1,9 +1,12 @@
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
+import type { HtmlBook, BookSlot } from "./html-book-contract";
+import HtmlBookRenderer from "./html-book-renderer";
 
 import MemoriesBasicRenderer from "./memories-basic-v1";
 
 export type TemplateRendererProps = {
   payload: MemoryRenderPayload;
+  slots?: Partial<Record<BookSlot, ReactNode>>;
 };
 
 export type RenderMedia = {
@@ -25,6 +28,7 @@ export type MemoryRenderPayload = {
   publishedAt: string | null;
   expiresAt: string | null;
   templateVersionId: string;
+  book?: HtmlBook | null;
   componentKey: string;
   rendererVersion: string;
   cover: RenderMedia | null;
@@ -94,6 +98,10 @@ type RegisteredRenderer = {
 export const TEMPLATE_RENDERER_REGISTRY: Readonly<
   Record<string, RegisteredRenderer>
 > = {
+  "html-book": {
+    rendererVersion: "1",
+    component: HtmlBookRenderer,
+  },
   "memories-basic-v1": {
     rendererVersion: "1",
     component: MemoriesBasicRenderer,
@@ -112,6 +120,7 @@ export function RegisteredTemplateRenderer({
   componentKey,
   rendererVersion,
   payload,
+  slots,
 }: TemplateRendererProps & {
   componentKey: string;
   rendererVersion: string;
@@ -121,5 +130,5 @@ export function RegisteredTemplateRenderer({
     return null;
   }
   const Renderer = registered.component;
-  return <Renderer payload={payload} />;
+  return <Renderer key={payload.templateVersionId} payload={payload} slots={slots} />;
 }

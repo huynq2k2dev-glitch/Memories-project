@@ -12,7 +12,8 @@ public final class TemplateConstants {
     public static final int MAXIMUM_PAGE_SIZE = 50;
     public static final Map<String, Set<String>> ALLOWED_RENDERERS = Map.of(
             COMPONENT_MEMORIES_BASIC_V1,
-            Set.of(RENDERER_VERSION_1)
+            Set.of(RENDERER_VERSION_1),
+            "html-book", Set.of(RENDERER_VERSION_1)
     );
 
     private TemplateConstants() {

@@ -39,3 +39,7 @@ databaseChangeLog:
       file: db/changelog/changes/020-foundation-schema-alignment.sql
   - include:
       file: db/changelog/changes/021-dev-demo-template.sql
+  - include:
+      file: db/changelog/changes/022-html-book-templates.sql
+  - include:
+      file: db/changelog/changes/023-wedding-book-collection.sql

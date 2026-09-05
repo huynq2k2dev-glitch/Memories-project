@@ -2,6 +2,7 @@
 
 let accessToken: string | null = null;
 let pendingRefresh: Promise<boolean> | null = null;
+const invalidationListeners = new Set<() => void>();
 
 export function storeAccessToken(token: string) {
   accessToken = token;
@@ -9,6 +10,17 @@ export function storeAccessToken(token: string) {
 
 export function clearAccessToken() {
   accessToken = null;
+}
+
+export function subscribeToSessionInvalidation(listener: () => void) {
+  invalidationListeners.add(listener);
+  return () => {
+    invalidationListeners.delete(listener);
+  };
+}
+
+export function restoreAccessToken() {
+  return refreshAccessToken();
 }
 
 export async function authenticatedFetch(
@@ -22,14 +34,18 @@ export async function authenticatedFetch(
   if (response.status !== 401 || !(await refreshAccessToken())) {
     return response;
   }
-  return fetch(path, withAccessToken(init));
+  const retriedResponse = await fetch(path, withAccessToken(init));
+  if (retriedResponse.status === 401) {
+    invalidateSession();
+  }
+  return retriedResponse;
 }
 
 export async function logoutCurrentSession() {
   try {
     await fetch("/api/auth/logout", { method: "POST" });
   } finally {
-    clearAccessToken();
+    invalidateSession();
   }
 }
 
@@ -37,7 +53,7 @@ export async function logoutAllSessions() {
   try {
     await authenticatedFetch("/api/auth/logout-all", { method: "POST" });
   } finally {
-    clearAccessToken();
+    invalidateSession();
   }
 }
 
@@ -62,14 +78,19 @@ async function requestRefresh() {
   try {
     const response = await fetch("/api/auth/refresh", { method: "POST" });
     if (!response.ok) {
-      clearAccessToken();
+      invalidateSession();
       return false;
     }
     const payload = (await response.json()) as { accessToken: string };
     storeAccessToken(payload.accessToken);
     return true;
   } catch {
-    clearAccessToken();
+    invalidateSession();
     return false;
   }
+}
+
+function invalidateSession() {
+  clearAccessToken();
+  invalidationListeners.forEach((listener) => listener());
 }

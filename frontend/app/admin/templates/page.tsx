@@ -1,5 +1,6 @@
 import AdminTemplateClient from "./admin-template-client";
+import RequireAuth from "@/components/require-auth";
 
 export default function AdminTemplatesPage() {
-  return <AdminTemplateClient />;
+  return <RequireAuth><AdminTemplateClient /></RequireAuth>;
 }

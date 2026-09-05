@@ -1,5 +1,5 @@
-import TemplateCatalogClient from "./template-catalog-client";
+import { redirect } from "next/navigation";
 
 export default function TemplatesPage() {
-  return <TemplateCatalogClient />;
+  redirect("/memories/new");
 }

@@ -1,0 +1,15 @@
+.editor { min-width: 0; border: 1px solid #d8d0c4; padding: 18px; border-radius: 12px; margin-block: 20px; }
+.config { display: flex; gap: 16px; flex-wrap: wrap; margin-block: 16px; }
+.config label { display: grid; align-content: start; gap: 6px; max-width: 200px; }
+.workspace { display: grid; grid-template-columns: minmax(160px, .35fr) minmax(0, 1fr); gap: 20px; }
+.pages { list-style: none; padding: 0; margin: 0 0 16px; }
+.pages li { display: flex; gap: 4px; margin-bottom: 8px; }
+.pages button { padding: 8px; }
+.pages button[aria-pressed="true"] { outline: 2px solid #9b7951; outline-offset: 2px; }
+.reorder { display: flex; }
+.fields { display: grid; gap: 8px; }
+.fields textarea, .css { font: 13px/1.6 Consolas, monospace; width: 100%; resize: vertical; }
+.css { display: block; margin-block: 10px; }
+.preview { margin-top: 20px; }
+.editor details { margin-block: 16px; }
+@media (max-width: 700px) { .workspace { grid-template-columns: 1fr; } }

@@ -3,6 +3,9 @@
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 
 import { authenticatedFetch } from "@/lib/auth-session";
+import { occasionDesign, sectionLabel } from "@/lib/occasion-design";
+import type { MemoryType } from "@/lib/api-types";
+import EditorPanel from "@/components/editor-panel";
 
 type MemoryMember = {
   id: string;
@@ -46,9 +49,11 @@ class ContentProblem extends Error {
 export default function MemoryContentEditor({
   memoryId,
   allowedSectionTypes,
+  memoryType = "PERSONAL",
 }: {
   memoryId: string;
   allowedSectionTypes: string[];
+  memoryType?: MemoryType;
 }) {
   const [members, setMembers] = useState<MemoryMember[]>([]);
   const [sections, setSections] = useState<MemorySection[]>([]);
@@ -146,10 +151,9 @@ export default function MemoryContentEditor({
     <section className="memory-content-editor" aria-busy={loading || busy}>
       <header>
         <div>
-          <h3>Nhân vật và section</h3>
+          <h3>Hoàn thiện nội dung</h3>
           <p className="form-note">
-            Nội dung draft có thể chưa hoàn chỉnh; điều kiện bắt buộc sẽ được kiểm
-            tra trước khi publish.
+            Điền các phần có sẵn trong mẫu. Những phần bắt buộc được đánh dấu để bạn dễ hoàn thiện trước khi xuất bản.
           </p>
         </div>
         <button type="button" disabled={loading || busy} onClick={() => void load()}>
@@ -165,9 +169,8 @@ export default function MemoryContentEditor({
       {loading ? <p>Đang tải nội dung memory…</p> : null}
 
       {!loading ? (
-        <div className="content-editor-columns">
-          <section>
-            <h4>Nhân vật</h4>
+        <div className="creator-content-sections">
+          <EditorPanel title={occasionDesign(memoryType).peopleLabel} hint="Thêm tên và đôi lời giới thiệu (tùy chọn).">
             <CreateMemberForm
               memoryId={memoryId}
               sortOrder={nextSortOrder(members)}
@@ -194,16 +197,10 @@ export default function MemoryContentEditor({
                 />
               ))}
             </div>
-          </section>
+          </EditorPanel>
 
           <section>
-            <h4>Section</h4>
-            <CreateSectionForm
-              memoryId={memoryId}
-              allowedSectionTypes={allowedSectionTypes}
-              sortOrder={nextSortOrder(sections)}
-              onCreated={(section) => setSections((current) => [...current, section])}
-            />
+            <h4>Các phần trong trang</h4>
             <div className="content-item-list">
               {sections.map((section, index) => (
                 <SectionCard
@@ -226,6 +223,9 @@ export default function MemoryContentEditor({
                 />
               ))}
             </div>
+            <EditorPanel title="Thêm một phần nội dung" hint="Mở khi bạn muốn kể thêm hoặc bổ sung một album.">
+              <CreateSectionForm memoryId={memoryId} allowedSectionTypes={allowedSectionTypes} sortOrder={nextSortOrder(sections)} onCreated={(section) => setSections((current) => [...current, section])} />
+            </EditorPanel>
           </section>
         </div>
       ) : null}
@@ -242,7 +242,7 @@ function CreateMemberForm({
   sortOrder: number;
   onCreated: (member: MemoryMember) => void;
 }) {
-  const [roleCode, setRoleCode] = useState("OWNER");
+  const roleCode = "OWNER";
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
@@ -272,15 +272,6 @@ function CreateMemberForm({
 
   return (
     <form className="content-item-form" onSubmit={submit}>
-      <label htmlFor="new-member-role">Role code</label>
-      <input
-        id="new-member-role"
-        value={roleCode}
-        onChange={(event) => setRoleCode(event.target.value.toUpperCase())}
-        pattern="[A-Z][A-Z0-9_]{0,49}"
-        maxLength={50}
-        required
-      />
       <label htmlFor="new-member-name">Tên đầy đủ</label>
       <input
         id="new-member-name"
@@ -296,7 +287,7 @@ function CreateMemberForm({
         onChange={(event) => setDisplayName(event.target.value)}
         maxLength={150}
       />
-      <label htmlFor="new-member-description">Mô tả (plain text/Markdown)</label>
+      <label htmlFor="new-member-description">Đôi lời giới thiệu</label>
       <textarea
         id="new-member-description"
         value={description}
@@ -330,7 +321,7 @@ function MemberCard({
   onDeleted: () => void;
   onReload: () => Promise<void>;
 }) {
-  const [roleCode, setRoleCode] = useState(member.roleCode);
+  const roleCode = member.roleCode;
   const [fullName, setFullName] = useState(member.fullName);
   const [displayName, setDisplayName] = useState(member.displayName ?? "");
   const [description, setDescription] = useState(member.description ?? "");
@@ -383,17 +374,7 @@ function MemberCard({
     <form className="content-item-card" onSubmit={save}>
       <div className="content-item-heading">
         <strong>{member.fullName}</strong>
-        <span>#{member.sortOrder}</span>
       </div>
-      <label htmlFor={`member-role-${member.id}`}>Role code</label>
-      <input
-        id={`member-role-${member.id}`}
-        value={roleCode}
-        onChange={(event) => setRoleCode(event.target.value.toUpperCase())}
-        pattern="[A-Z][A-Z0-9_]{0,49}"
-        maxLength={50}
-        required
-      />
       <label htmlFor={`member-name-${member.id}`}>Tên đầy đủ</label>
       <input
         id={`member-name-${member.id}`}
@@ -439,11 +420,9 @@ function CreateSectionForm({
   sortOrder: number;
   onCreated: (section: MemorySection) => void;
 }) {
-  const [sectionKey, setSectionKey] = useState("");
   const [sectionType, setSectionType] = useState(allowedSectionTypes[0] ?? "");
   const [title, setTitle] = useState("");
   const [contentText, setContentText] = useState("");
-  const [config, setConfig] = useState("{}");
   const [visible, setVisible] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -453,25 +432,22 @@ function CreateSectionForm({
     setBusy(true);
     setError("");
     try {
-      const parsedConfig = parseJsonObject(config);
       const section = await requestJson<MemorySection>(
         `/api/memories/${memoryId}/sections`,
         "POST",
         {
-          sectionKey,
+          sectionKey: `section-${crypto.randomUUID()}`,
           sectionType,
           title,
           contentText,
-          config: parsedConfig,
+          config: {},
           sortOrder,
           visible,
         },
       );
       onCreated(section);
-      setSectionKey("");
       setTitle("");
       setContentText("");
-      setConfig("{}");
       setVisible(true);
     } catch (reason) {
       setError(errorMessage(reason));
@@ -484,19 +460,10 @@ function CreateSectionForm({
     <form className="content-item-form" onSubmit={submit}>
       {allowedSectionTypes.length === 0 ? (
         <p className="form-note form-error">
-          Template version chưa khai báo section contract.
+          Mẫu này chưa hỗ trợ thêm phần nội dung.
         </p>
       ) : null}
-      <label htmlFor="new-section-key">Section key bất biến</label>
-      <input
-        id="new-section-key"
-        value={sectionKey}
-        onChange={(event) => setSectionKey(event.target.value)}
-        maxLength={100}
-        placeholder="hero-main"
-        required
-      />
-      <label htmlFor="new-section-type">Section type</label>
+      <label htmlFor="new-section-type">Bạn muốn thêm gì?</label>
       <select
         id="new-section-type"
         value={sectionType}
@@ -504,7 +471,7 @@ function CreateSectionForm({
         required
       >
         {allowedSectionTypes.map((type) => (
-          <option key={type}>{type}</option>
+          <option key={type} value={type}>{sectionLabel(type)}</option>
         ))}
       </select>
       <label htmlFor="new-section-title">Tiêu đề</label>
@@ -514,21 +481,12 @@ function CreateSectionForm({
         onChange={(event) => setTitle(event.target.value)}
         maxLength={255}
       />
-      <label htmlFor="new-section-content">Nội dung (plain text/Markdown)</label>
+      <label htmlFor="new-section-content">Nội dung</label>
       <textarea
         id="new-section-content"
         value={contentText}
         onChange={(event) => setContentText(event.target.value)}
         rows={5}
-      />
-      <label htmlFor="new-section-config">Config (JSON)</label>
-      <textarea
-        id="new-section-config"
-        className="json-editor"
-        value={config}
-        onChange={(event) => setConfig(event.target.value)}
-        rows={6}
-        required
       />
       <label className="checkbox-label" htmlFor="new-section-visible">
         <input
@@ -537,10 +495,10 @@ function CreateSectionForm({
           checked={visible}
           onChange={(event) => setVisible(event.target.checked)}
         />
-        Hiển thị section
+        Hiển thị phần này trên trang
       </label>
       <button type="submit" disabled={busy || allowedSectionTypes.length === 0}>
-        {busy ? "Đang thêm…" : "Thêm section"}
+        {busy ? "Đang thêm…" : "Thêm nội dung"}
       </button>
       <FormError error={error} />
     </form>
@@ -571,7 +529,6 @@ function SectionCard({
   const [sectionType, setSectionType] = useState(section.sectionType);
   const [title, setTitle] = useState(section.title ?? "");
   const [contentText, setContentText] = useState(section.contentText ?? "");
-  const [config, setConfig] = useState(JSON.stringify(section.config, null, 2));
   const [visible, setVisible] = useState(section.visible);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -591,7 +548,7 @@ function SectionCard({
             sectionType,
             title,
             contentText,
-            config: parseJsonObject(config),
+            config: section.config,
             visible,
             version: section.version,
           },
@@ -606,7 +563,7 @@ function SectionCard({
   }
 
   async function remove() {
-    if (!window.confirm(`Xóa section “${section.sectionKey}”?`)) {
+    if (!window.confirm(`Xóa phần “${section.title || sectionLabel(section.sectionType)}”?`)) {
       return;
     }
     setBusy(true);
@@ -628,20 +585,20 @@ function SectionCard({
   return (
     <form className="content-item-card" onSubmit={save}>
       <div className="content-item-heading">
-        <strong>{section.sectionKey}</strong>
+        <strong>{section.title || sectionLabel(section.sectionType)}</strong>
         <span>
-          #{section.sortOrder} · {section.required ? "Bắt buộc" : "Tùy chọn"} ·{" "}
+          {section.required ? "Bắt buộc" : "Tùy chọn"} ·{" "}
           {section.contentComplete ? "Có nội dung" : "Chưa hoàn chỉnh"}
         </span>
       </div>
-      <label htmlFor={`section-type-${section.id}`}>Section type</label>
+      <label htmlFor={`section-type-${section.id}`}>Kiểu nội dung</label>
       <select
         id={`section-type-${section.id}`}
         value={sectionType}
         onChange={(event) => setSectionType(event.target.value)}
       >
         {allowedSectionTypes.map((type) => (
-          <option key={type}>{type}</option>
+          <option key={type} value={type}>{sectionLabel(type)}</option>
         ))}
       </select>
       <label htmlFor={`section-title-${section.id}`}>Tiêu đề</label>
@@ -658,15 +615,6 @@ function SectionCard({
         onChange={(event) => setContentText(event.target.value)}
         rows={5}
       />
-      <label htmlFor={`section-config-${section.id}`}>Config (JSON)</label>
-      <textarea
-        id={`section-config-${section.id}`}
-        className="json-editor"
-        value={config}
-        onChange={(event) => setConfig(event.target.value)}
-        rows={6}
-        required
-      />
       <label className="checkbox-label" htmlFor={`section-visible-${section.id}`}>
         <input
           id={`section-visible-${section.id}`}
@@ -674,7 +622,7 @@ function SectionCard({
           checked={visible}
           onChange={(event) => setVisible(event.target.checked)}
         />
-        Hiển thị section
+        Hiển thị phần này trên trang
       </label>
       <ItemActions
         busy={busy}
@@ -803,14 +751,6 @@ function replaceItem<T extends { id: string }>(items: T[], updated: T) {
 
 function nextSortOrder(items: Array<{ sortOrder: number }>) {
   return items.reduce((maximum, item) => Math.max(maximum, item.sortOrder), -1) + 1;
-}
-
-function parseJsonObject(value: string): Record<string, unknown> {
-  const parsed = JSON.parse(value) as unknown;
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new Error("Config phải là một JSON object.");
-  }
-  return parsed as Record<string, unknown>;
 }
 
 function isConflict(reason: unknown) {

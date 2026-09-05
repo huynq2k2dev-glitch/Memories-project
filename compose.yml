@@ -59,6 +59,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/memories
       DB_USERNAME: memories
       DB_PASSWORD: memories
+      SPRING_LIQUIBASE_CONTEXTS: dev
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       FRONTEND_URL: http://localhost:3000

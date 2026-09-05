@@ -4,6 +4,9 @@ import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 
 import { authenticatedFetch } from "@/lib/auth-session";
+import EditorPanel from "@/components/editor-panel";
+import BookEditor, { newBook } from "./book-editor";
+import { parseBook, type HtmlBook } from "@/templates/html-book-contract";
 
 const MEMORY_TYPES = [
   "WEDDING",
@@ -46,6 +49,7 @@ type TemplateStatus = (typeof TEMPLATE_STATUSES)[number];
 type TemplateVersionStatus = "DRAFT" | "PUBLISHED" | "DEPRECATED";
 
 type AdminTemplateVersion = {
+  book?: HtmlBook | null;
   id: string;
   versionNo: number;
   componentKey: string;
@@ -158,18 +162,17 @@ export default function AdminTemplateClient() {
   );
 
   return (
-    <main className="admin-shell">
+    <main className="admin-shell template-administration">
       <section className="admin-header" aria-labelledby="template-admin-title">
         <div>
           <p className="eyebrow">Quản trị</p>
-          <h1 id="template-admin-title">Template</h1>
+          <h1 id="template-admin-title">Thư viện mẫu của hệ thống</h1>
           <p className="summary">
-            Quản lý metadata và hợp đồng render. Chỉ component có trong frontend
-            build mới được publish.
+            Quản lý mẫu, phiên bản và thiết kế thiệp nhiều trang. Mẫu HTML mới dùng chung trình hiển thị sách.
           </p>
         </div>
-        <Link className="secondary-link" href="/login">
-          Đăng nhập
+        <Link className="secondary-link" href="/memories">
+          Về khu vực người dùng
         </Link>
       </section>
 
@@ -180,7 +183,17 @@ export default function AdminTemplateClient() {
         </p>
       ) : null}
 
-      <CreateTemplateForm mutate={mutate} />
+      {!templatePage ? (
+        <div className="loading-panel" role="status">
+          {loading ? "Đang kiểm tra quyền quản trị…" : "Chưa thể mở công cụ quản trị. Hãy kiểm tra quyền tài khoản hoặc thử tải lại."}
+          {!loading ? <button type="button" onClick={() => void changePage(0)}>Thử lại</button> : null}
+        </div>
+      ) : (
+      <>
+      <p className="admin-notice">Khu vực dành cho quản trị viên. Các thay đổi ở đây quản lý mẫu của toàn hệ thống.</p>
+      <EditorPanel title="Tạo mẫu mới" hint="Khai báo loại dịp, mô tả và cấu hình mẫu.">
+        <CreateTemplateForm mutate={mutate} />
+      </EditorPanel>
 
       <section className="template-list" aria-busy={loading}>
         {loading ? <p>Đang tải template…</p> : null}
@@ -212,6 +225,8 @@ export default function AdminTemplateClient() {
           </nav>
         ) : null}
       </section>
+      </>
+      )}
     </main>
   );
 }
@@ -314,6 +329,7 @@ function TemplateCard({ template, mutate }: { template: AdminTemplate; mutate: M
         <span className="status-badge">{template.status}</span>
       </header>
 
+      <EditorPanel title="Thông tin và trạng thái mẫu">
       <form className="admin-form compact" onSubmit={updateMetadata}>
         <label htmlFor={`name-${template.id}`}>Tên</label>
         <input
@@ -354,10 +370,11 @@ function TemplateCard({ template, mutate }: { template: AdminTemplate; mutate: M
           {busy ? "Đang lưu…" : "Lưu metadata"}
         </button>
       </form>
+      </EditorPanel>
 
       <section className="version-section">
         <h3>Phiên bản render</h3>
-        <VersionForm templateId={template.id} mutate={mutate} />
+        <EditorPanel title="Thêm phiên bản"><VersionForm templateId={template.id} mutate={mutate} /></EditorPanel>
         {template.versions.map((version) => (
           <VersionCard
             key={version.id}
@@ -399,9 +416,20 @@ function VersionCard({
         <strong>Version {version.versionNo}</strong>
         <span className="status-badge">{version.status}</span>
       </header>
+      <button type="button" disabled={busy} onClick={async () => {
+        setBusy(true);
+        await mutate(`/api/admin/templates/${templateId}/versions`, "POST", {
+          componentKey: version.componentKey, rendererVersion: version.rendererVersion,
+          coverRequired: version.coverRequired, configSchema: version.configSchema,
+          defaultConfig: version.defaultConfig, sectionContracts: version.sectionContracts,
+          requiredSections: version.requiredSections, book: version.book ?? null,
+        }, "Đã tạo bản nháp từ phiên bản này.");
+        setBusy(false);
+      }}>Tạo bản nháp từ phiên bản này</button>
       {version.status === "DRAFT" ? (
         <>
           <VersionForm templateId={templateId} version={version} mutate={mutate} />
+          <p className="form-note">Publish sử dụng nội dung đã lưu. Hãy lưu draft sau khi chỉnh sửa trang thiệp.</p>
           <button
             className="publish-button"
             type="button"
@@ -458,6 +486,8 @@ function VersionForm({
   version?: AdminTemplateVersion;
   mutate: Mutation;
 }) {
+  const [componentKey, setComponentKey] = useState(version?.componentKey ?? "html-book");
+  const [book, setBook] = useState<HtmlBook>(version?.book ?? newBook());
   const [configSchema, setConfigSchema] = useState(
     version ? JSON.stringify(version.configSchema, null, 2) : BASIC_SCHEMA,
   );
@@ -483,12 +513,13 @@ function VersionForm({
     let parsedDefault: unknown;
     let parsedSectionContracts: unknown;
     try {
+      if (componentKey === "html-book") parseBook(book);
       parsedSchema = JSON.parse(configSchema);
       parsedDefault = JSON.parse(defaultConfig);
       parsedSectionContracts = JSON.parse(sectionContracts);
-    } catch {
+    } catch (reason) {
       setLocalError(
-        "Config schema, default config và section contracts phải là JSON hợp lệ.",
+        reason instanceof Error ? reason.message : "Cấu hình mẫu không hợp lệ.",
       );
       return;
     }
@@ -501,7 +532,8 @@ function VersionForm({
       path,
       version ? "PUT" : "POST",
       {
-        componentKey: "memories-basic-v1",
+        componentKey,
+        book: componentKey === "html-book" ? book : null,
         rendererVersion: "1",
         coverRequired,
         configSchema: parsedSchema,
@@ -520,15 +552,18 @@ function VersionForm({
       setSectionContracts(BASIC_SECTION_CONTRACTS);
       setRequiredSections("HERO");
       setCoverRequired(false);
+      setBook(newBook());
     }
     setBusy(false);
   }
 
   return (
     <form className="version-form" onSubmit={submit}>
-      <p className="renderer-contract">
-        Renderer khả dụng: <code>memories-basic-v1@1</code>
-      </p>
+      <label>Kiểu hiển thị<select value={componentKey} onChange={(event) => setComponentKey(event.target.value)}>
+        <option value="html-book">Thiệp HTML nhiều trang</option>
+        <option value="memories-basic-v1">Trang kỷ niệm cơ bản</option>
+      </select></label>
+      {componentKey === "html-book" ? <BookEditor book={book} onChange={setBook} themeConfig={defaultConfig} /> : null}
       <label className="checkbox-label">
         <input
           type="checkbox"
